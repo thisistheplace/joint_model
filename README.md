@@ -1,2 +1,2 @@
 # joint_model
-Generate meshe representations of 3D joints to DNV RP-C203
+Generate shell mesh representations of 3D joints to DNV RP-C203
