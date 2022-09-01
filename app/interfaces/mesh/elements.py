@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-from .nodes import Node
 from ..geometry import Vector3D
 
 class Element(BaseModel):
