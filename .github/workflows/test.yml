@@ -18,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install gmsh
         run: |
-          apt-get install -y python3-gmsh
+          sudo apt-get install -y python3-gmsh
       - name: Install python environment
         working-directory: ./src/app
         run: |
