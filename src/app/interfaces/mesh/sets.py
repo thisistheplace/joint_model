@@ -5,13 +5,13 @@ class Set(BaseModel):
 
 class NodeSet(Set):
     # how to check that node_ids are in the Nodes array
-    node_ids: list[int]
+    node_ids: list[int] = ...
 
 class NodeSets(BaseModel):
-    sets: dict[str, NodeSet]
+    sets: dict[str, NodeSet] = ...
 
 class ElementSet(Set):
-    element_ids: list[int]
+    element_ids: list[int] = ...
 
 class ElementSets(BaseModel):
-    sets: dict[str, ElementSet]
+    sets: dict[str, ElementSet] = ...
