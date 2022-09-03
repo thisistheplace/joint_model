@@ -12,4 +12,4 @@ def make_mesh():
         ]
         geom.boolean_intersection(disks)
 
-        mesh = geom.generate_mesh()
+        return geom.generate_mesh()
