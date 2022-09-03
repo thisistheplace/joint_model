@@ -11,19 +11,20 @@ ENV PYTHONUNBUFFERED 1
 # Install opencascade build dependencies
 RUN apt-get update
 RUN apt-get install -y software-properties-common
+RUN apt-get install -y python3-gmsh
 
-RUN apt-get install -y libocct-foundation-dev
-RUN apt-get install -y git
+# RUN apt-get install -y libocct-foundation-dev
+# RUN apt-get install -y git
 
-RUN git clone http://gitlab.onelab.info/gmsh/gmsh.git
+# RUN git clone http://gitlab.onelab.info/gmsh/gmsh.git
 
-RUN apt-get install -y cmake gcc g++
+# RUN apt-get install -y cmake gcc g++
 
-WORKDIR gmsh
-RUN mkdir build
-WORKDIR build
-RUN cmake ..
-RUN make
+# WORKDIR gmsh
+# RUN mkdir build
+# WORKDIR build
+# RUN cmake ..
+# RUN make
 
 # Install Python dependencies and Gunicorn
 ADD requirements.txt .
