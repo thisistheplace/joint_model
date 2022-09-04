@@ -1,5 +1,5 @@
+import io
 import os
-from urllib.error import HTTPError
 import requests
 
 from .constants import ENDPOINT
@@ -19,10 +19,16 @@ async def get_vtk_mesh(option: str) -> str:
     if ENDPOINT not in os.environ:
         raise OSError(f"Environment variable {ENDPOINT} is not defined")
     url = os.environ[ENDPOINT]
-    requests.Response
-    response = requests.get(url, data=DEMO_MODELS[option])
-
-    if response.status_code != requests.codes["ok"]:
-        raise HTTPError(url, response.status_code, response.text)
     
-    return response.content
+    out = io.BytesIO()
+    with requests.get(url, data=DEMO_MODELS[option], stream=True) as r:
+        r.raise_for_status()
+        for chunk in r.iter_content(chunk_size=8192):
+            print("reading chunk")
+            # If you have chunk encoded response uncomment if
+            # and set chunk_size parameter to None.
+            #if chunk: 
+            out.write(chunk)
+    out.seek(0)
+
+    return out.read()

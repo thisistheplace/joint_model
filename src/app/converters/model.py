@@ -16,3 +16,8 @@ def mesh_joint(geom: occ.Geometry, joint: Joint) -> meshio.Mesh:
     geom.boolean_union(meshed)
     mesh = geom.generate_mesh()
     return mesh
+
+def mesh_model(joint: Joint) -> meshio.Mesh:
+    with occ.Geometry() as geom:
+        mesh_joint(geom, joint)
+        return geom.generate_mesh()
