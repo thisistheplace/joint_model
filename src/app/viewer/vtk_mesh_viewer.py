@@ -6,6 +6,7 @@ from dash_vtk.utils import to_mesh_state
 import dash_bootstrap_components as dbc
 
 import asyncio
+import base64
 import uuid
 
 from .requests import get_vtk_mesh
@@ -83,11 +84,18 @@ class VtkMeshViewerAIO(html.Div):
         prevent_initial_callback=True
     )
     def update_markdown_style(option):
+        if option is None:
+            return no_update
         try:
             bytes_content = asyncio.run(get_vtk_mesh(option))
-            mesh_state = to_mesh_state(bytes_content)
+            print("got bytes")
+            dec = base64.b64decode(bytes_content)
+            str_content = dec.decode("utf-8")
+            print(str_content)
+            mesh_state = to_mesh_state(str_content)
             return dash_vtk.GeometryRepresentation([
                 dash_vtk.Mesh(state=mesh_state)
             ]), no_update, no_update
         except Exception as e:
+            raise(e)
             return no_update, True, str(e)

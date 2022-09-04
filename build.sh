@@ -1,5 +1,5 @@
-echo building docker container
-docker build -t jointbuilder:latest .
+echo killing old docker processes
+docker-compose rm -fs
 
-echo running docker pytest
-docker run -it jointbuilder pytest
+echo building docker containers
+docker-compose up --build -d
