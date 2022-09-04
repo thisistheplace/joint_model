@@ -1,6 +1,9 @@
 import io
+import os
+from pathlib import Path
 import pygmsh
 import pytest
+import shutil
 
 import sys
 sys.path.append("/src")
@@ -8,14 +11,25 @@ sys.path.append("/src")
 from app.interfaces import *
 from app.converters.model import mesh_joint, mesh_tubular
 
+TEMP = ".temp/converters"
+
 @pytest.fixture
 def geom():
     with pygmsh.occ.Geometry() as geom:
         yield geom
 
+@pytest.fixture
+def temp_dir():
+    temp_path = Path(TEMP).resolve()
+    os.makedirs(temp_path)
+    yield temp_path
+    shutil.rmtree(temp_path)
 
+
+@pytest.mark.usefixtures("temp_dir")
 class TestMeshTubular:
-    def test_mesh_tubular(self, geom: pygmsh.occ.Geometry):
+
+    def test_mesh_tubular(self, geom: pygmsh.occ.Geometry, temp_dir: Path):
         tube = Tubular(
             name="test",
             axis= Axis3D(
@@ -36,7 +50,11 @@ class TestMeshTubular:
 
         assert cylinder is not None
         mesh = geom.generate_mesh()
-        # mesh.write("abaqus.inp", "ansys")
-        # with open("abaqus.inp", "r") as f:
-        #     print(f.readlines())
         assert mesh is not None
+        
+        # This seems to require a file to touch disk
+        out = io.FileIO(str(temp_dir / "test.vtk"), "wb+")
+        mesh.write(out, "vtk")
+        out.seek(0)
+        bdata = out.readlines()
+        assert bdata is not None
