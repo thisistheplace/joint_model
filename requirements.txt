@@ -17,7 +17,7 @@ dash-bootstrap-components==1.2.1
 dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
-dash-vtk==0.0.9
+dash-vtk==0.0.4
 ecdsa==0.18.0
 fastapi==0.81.0
 Flask==2.2.2
@@ -69,7 +69,6 @@ typing_extensions==4.3.0
 urllib3==1.26.12
 uvicorn==0.18.3
 uvloop==0.16.0
-vtk==9.2.0rc2
 watchfiles==0.16.1
 websockets==10.3
 Werkzeug==2.2.2
