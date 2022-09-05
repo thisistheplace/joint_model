@@ -64,7 +64,7 @@ class Worker(Process):
 
             try:
                 mesh = mesh_model(job.data)
-                mesh.write(str(job.path), "vtk")
+                mesh.write(str(job.path), "stl", binary=True)
                 job.status = JobStatus.COMPLETE
             except Exception as e:
                 job.error = str(e)
@@ -76,15 +76,12 @@ def run_job(worker: Worker, job: Job):
     if not worker.is_alive():
         raise WorkerException("Worker performing gmsh operations is not running, please contact the administrator")
 
-    print("submitted job")
     worker.inqueue.put(job)
 
     output = worker.outqueue.get(timeout=60.0)
     while output.id != job.id:
         time.sleep(DELAY / 1000.0)
         output = worker.outqueue.get(timeout=60.0)
-        
-    print("got job")
 
     if output.error is not None or output.status != JobStatus.COMPLETE:
         raise WorkerException(f"Error occurred while processing mesh: {output.error}")

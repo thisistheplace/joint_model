@@ -24,12 +24,10 @@ async def get_vtk_mesh(option: str) -> str:
     with requests.get(f"{url}/{option}", stream=True) as r:
         r.raise_for_status()
         for chunk in r.iter_content(chunk_size=8192):
-            print("reading chunk")
             # If you have chunk encoded response uncomment if
             # and set chunk_size parameter to None.
             #if chunk: 
             out.write(chunk)
-        print("finished")
     out.seek(0)
 
     return out.read()

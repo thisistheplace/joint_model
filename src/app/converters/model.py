@@ -19,5 +19,5 @@ def mesh_joint(geom: occ.Geometry, joint: Joint) -> meshio.Mesh:
 
 def mesh_model(joint: Joint) -> meshio.Mesh:
     with occ.Geometry() as geom:
-        mesh_joint(geom, joint)
+        mesh_tubular(geom, joint)
         return geom.generate_mesh()

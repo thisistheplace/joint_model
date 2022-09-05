@@ -39,6 +39,22 @@ DEMO_MODELS = {
                     diameter=0.25
                 )
             ]
+        ),
+    "Tube":
+        Tubular(
+            name="test",
+            axis= Axis3D(
+                point=Point3D(
+                    x=1,
+                    y=1,
+                    z=1
+                ),
+                vector=Vector3D(
+                    x=0,
+                    y=0,
+                    z=3
+                )
+            ),
+            diameter=0.5
         )
-    
 }

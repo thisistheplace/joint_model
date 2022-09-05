@@ -53,8 +53,10 @@ class TestMeshTubular:
         assert mesh is not None
         
         # This seems to require a file to touch disk
-        out = io.FileIO(str(temp_dir / "test.vtk"), "wb+")
-        mesh.write(out, "vtk")
+        out = io.FileIO(str(temp_dir / "test.stl"), "w+")
+        mesh.write(out, "stl", binary=True)
         out.seek(0)
-        bdata = out.readlines()
+        bdata = out.read()
+        print(bdata)
         assert bdata is not None
+        assert 1 == 0
