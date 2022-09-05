@@ -31,5 +31,3 @@ class TestMeshTubular:
         with mesh_model(joint) as mesh:
             mesh_to_dash_vtk(mesh)
             assert mesh is not None
-
-        assert 1 == 0
