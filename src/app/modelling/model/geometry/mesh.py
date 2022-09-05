@@ -1,6 +1,7 @@
 from math import pi, cos
 import pygmsh
 
+
 def make_mesh():
     with pygmsh.occ.Geometry() as geom:
         geom.characteristic_length_max = 0.1

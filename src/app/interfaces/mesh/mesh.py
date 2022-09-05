@@ -4,6 +4,7 @@ from .nodes import Nodes
 from .elements import Elements
 from .sets import NodeSets, ElementSets
 
+
 class Mesh(BaseModel):
     name: str | None = None
     nodes: Nodes = ...

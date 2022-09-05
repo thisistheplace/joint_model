@@ -2,16 +2,17 @@ from multiprocessing import Process, Queue, Event
 import time
 
 from .job import Job, JobStatus
-from ..converters.model import convert_joint_to_dash_vtk
+from ...converters.model import convert_joint_to_dash_vtk
 
 SENTINEL = "STOP"
-DELAY = 5 # ms
+DELAY = 5  # ms
+
 
 class WorkerException(Exception):
     pass
 
-class Worker(Process):
 
+class Worker(Process):
     def __init__(self):
         super(Worker, self).__init__()
         self._inqueue = Queue()
@@ -36,7 +37,7 @@ class Worker(Process):
             self.inqueue.put(SENTINEL)
             if self.is_alive():
                 self.join()
-    
+
     def run(self):
         while True:
             if self.stop_event.is_set():
@@ -73,7 +74,9 @@ class Worker(Process):
 
 def run_job(worker: Worker, job: Job):
     if not worker.is_alive():
-        raise WorkerException("Worker performing gmsh operations is not running, please contact the administrator")
+        raise WorkerException(
+            "Worker performing gmsh operations is not running, please contact the administrator"
+        )
 
     worker.inqueue.put(job)
 

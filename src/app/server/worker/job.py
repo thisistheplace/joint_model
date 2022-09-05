@@ -2,11 +2,13 @@ from enum import Enum
 from pathlib import Path
 import uuid
 
+
 class JobStatus(Enum):
     PENDING = 1
     RUNNING = 2
     COMPLETE = 3
     ERROR = 4
+
 
 class Job:
     def __init__(self, data):
@@ -48,4 +50,3 @@ class Job:
     @status.setter
     def status(self, value: JobStatus):
         self._status = value
-    

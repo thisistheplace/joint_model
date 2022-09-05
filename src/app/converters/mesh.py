@@ -1,7 +1,8 @@
 from collections import defaultdict
 import gmsh
 
-from ..mesher.mesh import mesh_joint
+from ..modelling.mesher.mesh import mesh_joint
+
 
 def process_mesh(mesh: gmsh.model.mesh):
     # Like elements, mesh edges and faces are described by (an ordered list of)
@@ -18,22 +19,20 @@ def process_mesh(mesh: gmsh.model.mesh):
     faceTags, faceOrientations = mesh.getFaces(3, faceNodes)
     elementTags, elementNodeTags = mesh.getElementsByType(elementType)
 
-    # edges2Elements = defaultdict(list)
     faces2Elements = defaultdict(list)
 
-    # for i in range(len(edgeTags)): # 6 edges per tetrahedron
-    #     edges2Elements[edgeTags[i]].append(elementTags[i // 6])
-    for i in range(len(faceTags)): # 4 faces per tetrahedron
+    for i in range(len(faceTags)):  # 4 faces per tetrahedron
         faces2Elements[faceTags[i]].append(elementTags[i // 4])
 
     return faces2Elements
 
+
 def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
     face2el = process_mesh(mesh)
-    
+
     outerfaces = [k for k, v in face2el.items()]
 
-    nid2pointidx = {} # key: node number, value: index in points
+    nid2pointidx = {}  # key: node number, value: index in points
     points = []
     lines = []
     polys = []
@@ -55,8 +54,4 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
         lines += line
         polys += poly
 
-    return {
-        "points": points,
-        "lines": lines,
-        "polys": polys
-    }
+    return {"points": points, "lines": lines, "polys": polys}

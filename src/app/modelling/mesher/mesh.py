@@ -4,25 +4,28 @@ import gmsh
 
 from .cylinder import add_cylinder
 
-from ..interfaces.geometry import *
-from ..interfaces.model import *
+from ...interfaces.geometry import *
+from ...interfaces.model import *
+
 
 def mesh_tubular(tube: Tubular) -> int:
     """Adds tubular geometry and returns tag id"""
     return add_cylinder(tube)
 
+
 def mesh_joint(joint: Joint) -> dict[str, int]:
-    return { tube.name: mesh_tubular(tube) for tube in joint.tubes }
+    return {tube.name: mesh_tubular(tube) for tube in joint.tubes}
+
 
 @contextmanager
 def mesh_model(joint: Joint) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
-        
+
         mesh_joint(joint)
 
         gmsh.model.occ.synchronize()
-        gmsh.option.setNumber("Mesh.MeshSizeMax", .1)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
         gmsh.model.mesh.generate(3)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever

@@ -5,9 +5,10 @@ import requests
 from .constants import ENDPOINT
 from .models import DEMO_MODELS
 
+
 async def get_mesh(option: str) -> str:
     """Makes a request to server hosting FastAPI
-    
+
     Uses environment variable VTK_MESHER_URL to make request.
 
     Returns:
@@ -15,18 +16,18 @@ async def get_mesh(option: str) -> str:
     """
     if option not in DEMO_MODELS:
         raise KeyError(f"Model {option} is not in the available models!")
-    
+
     if ENDPOINT not in os.environ:
         raise OSError(f"Environment variable {ENDPOINT} is not defined")
     url = os.environ[ENDPOINT]
-    
+
     out = io.BytesIO()
     with requests.get(f"{url}/{option}", stream=True) as r:
         r.raise_for_status()
         for chunk in r.iter_content(chunk_size=8192):
             # If you have chunk encoded response uncomment if
             # and set chunk_size parameter to None.
-            #if chunk: 
+            # if chunk:
             out.write(chunk)
     out.seek(0)
 
