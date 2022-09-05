@@ -1,4 +1,3 @@
-from cmath import isnan
 import numpy as np
 
 def unit_vector(vector):

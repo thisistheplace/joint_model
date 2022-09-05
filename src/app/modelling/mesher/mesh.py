@@ -9,11 +9,9 @@ from ...interfaces.model import *
 
 FACTORY = gmsh.model.occ
 
-
 def mesh_tubular(tube: Tubular) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     return add_cylinder(tube)
-
 
 def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
     joint_mesh = {tube.name: mesh_tubular(tube) for tube in joint.tubes}
@@ -33,12 +31,9 @@ def mesh_model(joint: Joint) -> gmsh.model.mesh:
 
         # attempt all intersections
         for comb in combinations(meshed_tubes.values(), 2):
-            print(FACTORY.getEntities(2))
-            assert len(FACTORY.getEntities(2)) == 2
             intersect = FACTORY.intersect(
                 [comb[0]], [comb[1]], removeObject=False, removeTool=False
             )
-            print(intersect)
             FACTORY.synchronize()
             if len(intersect[0]) > 0:
                 # if there is an intersection, do what you want to do.

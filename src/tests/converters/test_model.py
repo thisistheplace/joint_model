@@ -27,7 +27,7 @@ def temp_dir():
 @pytest.mark.usefixtures("temp_dir")
 class TestMeshTubular:
     def test_mesh_tubular(self, temp_dir: Path):
-        joint = DEMO_MODELS["TJoint"]
+        joint = DEMO_MODELS["KJoint"]
         with mesh_model(joint) as mesh:
             mesh_to_dash_vtk(mesh)
             assert mesh is not None

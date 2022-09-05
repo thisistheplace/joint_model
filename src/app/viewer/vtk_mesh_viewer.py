@@ -22,7 +22,7 @@ def make_toast(id: str):
         icon="danger",
         duration=3000,
         # top: 66 positions the toast below the navbar
-        style={"position": "fixed", "top": 66, "right": 10, "width": 350},
+        style={"position": "fixed", "top": 66, "right": 10, "width": 350, "zIndex": 1000},
     )
 
 
@@ -51,7 +51,12 @@ class VtkMeshViewerAIO(html.Div):
         }
         store = lambda aio_id: {
             "component": "VtkMeshViewerAIO",
-            "subcomponent": "session",
+            "subcomponent": "store",
+            "aio_id": aio_id,
+        }
+        interval = lambda aio_id: {
+            "component": "VtkMeshViewerAIO",
+            "subcomponent": "interval",
             "aio_id": aio_id,
         }
 
@@ -76,6 +81,7 @@ class VtkMeshViewerAIO(html.Div):
         super().__init__(
             [  # Equivalent to `html.Div([...])`
                 dcc.Dropdown(options, id=self.ids.dropdown(aio_id)),
+                dcc.Interval(id=self.ids.interval(aio_id), interval=500, max_intervals=0),
                 make_toast(id=self.ids.toast(aio_id)),
                 dcc.Store(id=self.ids.store(aio_id)),
                 dcc.Loading(
@@ -119,6 +125,7 @@ class VtkMeshViewerAIO(html.Div):
     # that will apply to every instance of this component.
     @callback(
         Output(ids.vtk(MATCH), "children"),
+        Output(ids.store(MATCH), "data"),
         Output(ids.toast(MATCH), "is_open"),
         Output(ids.toast(MATCH), "children"),
         Input(ids.dropdown(MATCH), "value"),
@@ -134,30 +141,28 @@ class VtkMeshViewerAIO(html.Div):
                 dash_vtk.GeometryRepresentation(
                     [dash_vtk.GeometryRepresentation(vtk_to_dash(json_data))]
                 ),
+                option,
                 no_update,
                 no_update,
             )
         except Exception as e:
-            raise (e)
-            return no_update, True, str(e)
+            return no_update, no_update, True, str(e)
 
-    callback(
-        Output(ids.loading(MATCH), "interval"),
-        Input(ids.loading(MATCH), "n_intervals"),
+    @callback(
+        Output(ids.interval(MATCH), "interval"),
+        Input(ids.interval(MATCH), "n_intervals"),
         prevent_initial_call=True,
     )
-
     def model_loading_wheel(n):
         time.sleep(0.5)
         return no_update
 
-    callback(
-        Output(ids.loading(MATCH), "max_intervals"),
+    @callback(
+        Output(ids.interval(MATCH), "max_intervals"),
         Input(ids.dropdown(MATCH), "value"),
-        State(ids.dropdown(MATCH), "value"),
+        State(ids.store(MATCH), "data"),
         prevent_initial_call=True,
     )
-
     def check_loader(new_selection, old_selection):
         if new_selection == old_selection:
             return 0
