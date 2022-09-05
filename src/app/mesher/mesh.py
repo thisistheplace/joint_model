@@ -23,7 +23,7 @@ def mesh_model(joint: Joint) -> gmsh.model.mesh:
 
         gmsh.model.occ.synchronize()
         gmsh.option.setNumber("Mesh.MeshSizeMax", .1)
-        gmsh.model.mesh.generate()
+        gmsh.model.mesh.generate(3)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever
         # the ordering of their nodes) and assign them a unique tag. This identification

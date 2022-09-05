@@ -10,3 +10,13 @@ services:
     ports:
       - "8000:8000"
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers 1
+
+  viewer:
+    container_name: jointviewer
+    restart: always
+    build: .
+    expose:
+      - "8000"
+    ports:
+      - "8050:8000"
+    command: gunicorn -w 1 -b :8000 viewer:server
