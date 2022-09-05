@@ -22,7 +22,7 @@ def mesh_model(joint: Joint) -> gmsh.model.mesh:
         mesh_joint(joint)
 
         gmsh.model.occ.synchronize()
-        gmsh.option.setNumber("Mesh.MeshSizeMax", .2)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", .1)
         gmsh.model.mesh.generate()
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever

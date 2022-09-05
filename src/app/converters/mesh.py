@@ -37,9 +37,10 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
     points = []
     lines = []
     polys = []
+
     for element in outerfaces:
         eltype, node_ids = mesh.getElement(element)
-        if eltype != 2:
+        if eltype != 2 or len(node_ids) != 3:
             continue
         line = [3]
         poly = []
@@ -47,7 +48,7 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
             if nid not in nid2pointidx:
                 coords, _ = mesh.getNode(nid)
                 points += coords.tolist()
-                nid2pointidx[nid] = len(points) / 3 - 1
+                nid2pointidx[nid] = int(len(points) / 3 - 1)
             line.append(nid2pointidx[nid])
             poly.append(nid2pointidx[nid])
         poly.append(poly[0])
