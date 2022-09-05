@@ -5,7 +5,7 @@ import requests
 from .constants import ENDPOINT
 from .models import DEMO_MODELS
 
-async def get_vtk_mesh(option: str) -> str:
+async def get_mesh(option: str) -> str:
     """Makes a request to server hosting FastAPI
     
     Uses environment variable VTK_MESHER_URL to make request.

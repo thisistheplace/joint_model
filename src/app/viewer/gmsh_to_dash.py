@@ -1,30 +1,10 @@
-from lib2to3.pytree import Base
 import dash_vtk
-from pydantic import BaseModel
-import numpy as np
 
-POINTS = "POINTS"
-CONNECTIVITY = "CONNECTIVITY"
-CELL_TYPES = "CELL_TYPES"
-
-
-def read_until(lines: list, until: str):
-    lidx = 0
-    while until not in lines[lidx]:
-        lidx += 1
-    return lines[:lidx]
-
-
-def vtk_to_dash(data) -> dash_vtk.PolyData:
+def vtk_to_dash(data: dict[str, list]) -> dash_vtk.PolyData:
     return dash_vtk.PolyData(
-        points=[
-            0,0,0,
-            1,0,0,
-            0,1,0,
-            1,1,0,
-        ],
-        lines=[3, 1, 3, 2],
-        polys=[3, 0, 1, 2],
+        points=data["points"],
+        lines=data["lines"],
+        polys=data["polys"],
         children=[
             dash_vtk.PointData([
                 dash_vtk.DataArray(

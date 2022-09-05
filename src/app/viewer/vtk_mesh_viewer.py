@@ -2,16 +2,15 @@ from email.headerregistry import MessageIDHeader
 from dash import Output, Input, html, dcc, callback, MATCH, no_update
 
 import dash_vtk
-from dash_vtk.utils import to_mesh_state
 
 import dash_bootstrap_components as dbc
 
 import asyncio
-import base64
+import json
 import uuid
 
-from .requests import get_vtk_mesh
-# from .gmsh_to_dash import vtk_to_dash
+from .requests import get_mesh
+from .gmsh_to_dash import vtk_to_dash
 
 def make_toast(id:str):
     return dbc.Toast(
@@ -100,21 +99,12 @@ class VtkMeshViewerAIO(html.Div):
         if option is None:
             return no_update
         try:
-            bytes_content = asyncio.run(get_vtk_mesh(option))
-            # print(bytes_content)
-            # bytes_content = "\n".join(bytes_content.splitlines()[1:])
-            # print("got bytes")
-            bytes_content = base64.b64decode(bytes_content)
-            print(bytes_content)
-            # str_content = bytes_content[80:].decode()
-            # print(str_content)
-            # data = vtk_to_dash(str_content)
+            json_bytes = asyncio.run(get_mesh(option))
+            json_data = json.loads(json_bytes.decode("utf-8"))
             return dash_vtk.GeometryRepresentation([
-                # data
-                dash_vtk.Reader(
-                    vtkClass="vtkSTLReader",
-                    parseAsArrayBuffer=str(bytes_content),
-                ),
+                dash_vtk.GeometryRepresentation(
+                    vtk_to_dash(json_data)
+                )
             ]), no_update, no_update
         except Exception as e:
             raise(e)

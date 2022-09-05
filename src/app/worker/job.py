@@ -12,8 +12,8 @@ class Job:
     def __init__(self, data):
         self._id = str(uuid.uuid4())
         self._data = data
+        self._mesh = None
         self._error = None
-        self._path = Path(self.id).resolve() / "mesh.mesh"
         self._status = JobStatus.PENDING
 
     @property
@@ -34,8 +34,12 @@ class Job:
         self._error = value
 
     @property
-    def path(self) -> Path:
-        return self._path
+    def mesh(self) -> dict[str, list]:
+        return self._mesh
+
+    @mesh.setter
+    def mesh(self, value: dict[str, list]):
+        self._mesh = value
 
     @property
     def status(self) -> JobStatus:
