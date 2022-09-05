@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   fastapi:
-    container_name: jointmodel
+    container_name: jointbuilder
     restart: always
     build: .
     expose:
