@@ -6,7 +6,11 @@ from ..interfaces.examples.joints import EXAMPLE_JOINTS
 from .layout import VtkFileInputAIO
 
 # Dash setup
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME])
+app = Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME],
+    title="JointMesh"
+)
 server = app.server
 
 app.layout = VtkFileInputAIO(options=list(EXAMPLE_JOINTS.keys()))
