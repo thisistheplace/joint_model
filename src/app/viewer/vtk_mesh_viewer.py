@@ -160,10 +160,11 @@ class VtkMeshViewerAIO(html.Div):
     @callback(
         Output(ids.interval(MATCH), "max_intervals"),
         Input(ids.dropdown(MATCH), "value"),
+        Input(ids.store(MATCH), "data"),
         State(ids.store(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def check_loader(new_selection, old_selection):
+    def check_loader(new_selection, _, old_selection):
         if new_selection == old_selection:
             return 0
         else:

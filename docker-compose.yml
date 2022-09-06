@@ -14,7 +14,7 @@ services:
   viewer:
     container_name: jointviewer
     environment:
-      - VTK_MESHER_URL=http://host.docker.internal:8000/meshjoint
+      - VTK_MESHER_URL=http://host.docker.internal:8000
     restart: always
     build: .
     expose:
