@@ -2,7 +2,10 @@ version: '3.7'
 
 services:
   fastapi:
-    container_name: jointbuilder
+    container_name: jointrestapi
+    environment:
+      - RESTAPI_URL=http://127.0.0.1:8000
+      - VIEWER_URL=http://127.0.0.1:8050
     restart: always
     build: .
     expose:
@@ -14,7 +17,8 @@ services:
   viewer:
     container_name: jointviewer
     environment:
-      - VTK_MESHER_URL=http://host.docker.internal:8000
+      - RESTAPI_URL=http://host.docker.internal:8000
+      - VIEWER_URL=http://host.docker.internal:8050
     restart: always
     build: .
     expose:

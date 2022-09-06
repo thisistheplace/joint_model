@@ -1,7 +1,7 @@
 """Demo models to use for testing"""
-from ..interfaces import *
+from ...interfaces import *
 
-DEMO_MODELS = {
+EXAMPLE_JOINTS = {
     "TJoint": Joint(
         name="TJoint",
         tubes=[

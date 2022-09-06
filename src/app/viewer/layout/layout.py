@@ -69,16 +69,19 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         # Define the component's layout
         super().__init__(
             aio_id,
-            [
-                dbc.Button(
-                    html.I(className="fa fa-bars"),
-                    id=self.ids.open(aio_id),
-                    className="mb-3",
-                    n_clicks=0,
+            [   
+                html.Div(
+                    dbc.Button(
+                        html.I(className="fa fa-bars"),
+                        id=self.ids.open(aio_id),
+                        className="mb-3",
+                        n_clicks=0,
+                    ),
                     style={
-                        "zindex": "1000",
+                        "z-index": "1000",
                         "position": "absolute",
                         "display": "block",
+                        "padding": "10px"
                     },
                 ),
                 dbc.Offcanvas(
@@ -111,7 +114,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                     ),
                                     dbc.AccordionItem(
                                         dcc.Upload(
-                                            id="upload-data",
+                                            id=self.ids.fileupload(aio_id),
                                             children=html.Div(
                                                 [
                                                     "Drag and Drop or ",
@@ -132,13 +135,14 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                         ),
                                         title="Upload file",
                                     ),
-                                ]
+                                ],
+                                style={"paddingTop": "20px"}
                             ),
                         ],
                         style={"height": "100%", "width": "100%", "maxWidth": "100%"},
                     ),
                     id=self.ids.sidepanel(aio_id),
-                    is_open=True,
+                    is_open=False
                 ),
             ],
             options,

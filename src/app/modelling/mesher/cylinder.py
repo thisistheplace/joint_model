@@ -1,7 +1,7 @@
 import gmsh
 import math
 
-from app.interfaces.model import Tubular
+from app.interfaces import Tubular
 
 from .vectors import angle_between
 from ...interfaces.geometry import *
