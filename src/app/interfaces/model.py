@@ -10,5 +10,5 @@ class Model(BaseModel):
     class Config:
         schema_extra = {
             "name": "TJoint",
-            "joint": EXAMPLE_JOINTS["TJoint"].schema_json()
+            "joint": EXAMPLE_JOINTS["TJoint"].json()
         }

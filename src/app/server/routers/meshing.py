@@ -39,7 +39,7 @@ def mesh_example(jointname: str):
         )
     return do_meshing(EXAMPLE_JOINTS[jointname])
 
-@router.get("/meshmodel")
+@router.post("/meshmodel")
 def mesh_model(model: Model):
     # do some validation here!
     return do_meshing(model.joint)

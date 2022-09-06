@@ -14,52 +14,19 @@ import dash_bootstrap_components as dbc
 from ast import literal_eval
 import uuid
 
-from .vtk import VtkMeshViewerAIO
+from app.interfaces.validation import validate_json
+
+from ..ids import Ids
+from ..toast import make_toast
+from ..vtkmeshviewer import VtkMeshViewerAIO
+from ....interfaces import Model
+from ....interfaces.examples.joints import EXAMPLE_JOINTS
 
 
 class VtkFileInputAIO(VtkMeshViewerAIO):
-    # A set of functions that create pattern-matching callbacks of the subcomponents
-    # Extend for components added by the layout
-    class ids(VtkMeshViewerAIO.ids):
-        dropdown = lambda aio_id: {
-            "component": "VtkMeshViewerAIO",
-            "subcomponent": "dropdown",
-            "aio_id": aio_id,
-        }
-        freeinput = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "freeinput",
-            "aio_id": aio_id,
-        }
-        fileupload = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "fileupload",
-            "aio_id": aio_id,
-        }
-        inputstore = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "inputstore",
-            "aio_id": aio_id,
-        }
-        # Sidepanel stuff
-        sidepanel = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "sidepanel",
-            "aio_id": aio_id,
-        }
-        open = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "open",
-            "aio_id": aio_id,
-        }
-        close = lambda aio_id: {
-            "component": "VtkFileInputAIO",
-            "subcomponent": "close",
-            "aio_id": aio_id,
-        }
 
     # Make the ids class a public class
-    ids = ids
+    ids = Ids
 
     # Define the arguments of the All-in-One component
     def __init__(self, options: list[str]):
@@ -70,6 +37,8 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         super().__init__(
             aio_id,
             [   
+                make_toast(id=self.ids.exampletoast(aio_id), header="Invalid example error"),
+                make_toast(id=self.ids.texttoast(aio_id), header="Invalid json input"),
                 html.Div(
                     dbc.Button(
                         html.I(className="fa fa-bars"),
@@ -87,7 +56,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                 dbc.Offcanvas(
                     dbc.Container(
                         [
-                            dcc.Store(id=self.ids.inputstore(aio_id)),
+                            dcc.Store(id=self.ids.textjsonstore(aio_id)),
                             html.Div(
                                 dbc.Button(
                                     html.I(className="fa-solid fa-xmark"),
@@ -135,6 +104,23 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                         ),
                                         title="Upload file",
                                     ),
+                                    dbc.AccordionItem(
+                                        [
+                                            html.Div(
+                                                dbc.Button("Upload JSON", id=self.ids.textupload(aio_id), color="success", className="me-1", style={"padding": "10px"}),
+                                                style={"paddingTop":"10px", "paddingBottom":"10px"}
+                                            ),
+                                            # json input
+                                            dbc.Textarea(
+                                                id=self.ids.textinput(aio_id),
+                                                valid=True,
+                                                className="mb-3",
+                                                placeholder="Paste JSON data here",
+                                                style={"height":"100%"}
+                                            ),
+                                        ],
+                                        title="JSON data input"
+                                    ),
                                 ],
                                 style={"paddingTop": "20px"}
                             ),
@@ -142,7 +128,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                         style={"height": "100%", "width": "100%", "maxWidth": "100%"},
                     ),
                     id=self.ids.sidepanel(aio_id),
-                    is_open=False
+                    is_open=True
                 ),
             ],
             options,
@@ -151,12 +137,22 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
     # Define this component's stateless pattern-matching callback
     # that will apply to every instance of this component.
     @callback(
-        Output(ids.store(MATCH), "data"),
+        Output(ids.jsonstore(MATCH), "data"),
+        Output(ids.exampletoast(MATCH), "is_open"),
+        Output(ids.exampletoast(MATCH), "children"),
         Input(ids.dropdown(MATCH), "value"),
+        Input(ids.textjsonstore(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def check_loader(option):
-        return option
+    def get_example_joint(option, json_data):
+        if option is None and json_data is not None:
+            return json_data, no_update, no_update
+        if option not in EXAMPLE_JOINTS:
+            msg = f"Model {option} is not in the available models!"
+            return no_update, True, msg
+        # create model response
+        model = Model(name=option, joint=EXAMPLE_JOINTS[option])
+        return model.json(), no_update, no_update
 
     @callback(
         Output(ids.sidepanel(MATCH), "is_open"),
@@ -166,6 +162,8 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
     )
     def toggle_collapse(n_open, n_close):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+        if button_id == "":
+            return no_update
         button_id = literal_eval(button_id)
         if button_id["subcomponent"] == "open":
             return True
@@ -173,6 +171,27 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             return False
         else:
             return no_update
+
+    @callback(
+        Output(ids.textjsonstore(MATCH), "data"),
+        Output(ids.texttoast(MATCH), "is_open"),
+        Output(ids.texttoast(MATCH), "children"),
+        Input(ids.textupload(MATCH), "n_clicks"),
+        State(ids.textinput(MATCH), "value"),
+        prevent_initial_callback=True,
+    )
+    def load_json(n_clicks, json_str):
+        # load model data
+        if json_str is None:
+            return no_update
+        elif json_str == "":
+            return no_update, True, "Could not load an empty string"
+        else:
+            try:
+                model_data = validate_json(json_str, Model)
+                return model_data, no_update, no_update
+            except Exception as e:
+                return no_update, True, str(e)
 
     # @app.callback(
     #     Output("wheel-interval", "max_intervals"),

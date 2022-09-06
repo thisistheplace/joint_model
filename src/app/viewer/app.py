@@ -3,7 +3,7 @@ from dash import Dash
 import dash_bootstrap_components as dbc
 
 from ..interfaces.examples.joints import EXAMPLE_JOINTS
-from .layout.layout import VtkFileInputAIO
+from .layout import VtkFileInputAIO
 
 # Dash setup
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME])

@@ -1,0 +1,41 @@
+{
+    "name": "TJoint",
+    "joint": {
+        "name": "TJoint",
+        "tubes": [
+            {
+                "name": "Vertical",
+                "axis": {
+                    "point": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    },
+                    "vector": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 5.0
+                    }
+                },
+                "diameter": 0.5
+            },
+            {
+                "name": "Horizontal",
+                "axis": {
+                    "point": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 3.0
+                    },
+                    "vector": {
+                        "x": 3.0,
+                        "y": 0.0,
+                        "z": 0.0
+                    }
+                },
+                "diameter": 0.25
+            }
+        ],
+        "origin": null
+    }
+}
