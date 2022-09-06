@@ -36,6 +36,13 @@ async def root(background_tasks: BackgroundTasks):
                 padding-top: 5px;
                 padding-bottom: 5px;
             }}
+            .credits {{
+                display: block;
+                position: absolute;
+                right: 0px;
+                bottom: 0px;
+                padding: 40px;
+            }}
             </style>
         </head>
         <body>
@@ -62,7 +69,7 @@ async def root(background_tasks: BackgroundTasks):
                         <div class="card-header">Viewer</div>
                         <div class="card-body">
                             <h4 class="card-title">View joint meshes</h4>
-                            <p class="card-text">You can also create <b>and</b> view joint meshes using a user interface.</p>
+                            <p class="card-text">You can create <b>and</b> view joint meshes using a user interface. This uses the RestAPI under the hood.</p>
                             <p class="card-text">This viewer is developed using <a href='https://dash.plotly.com/vtk'>Dash VTK</a>.</p>
                             <div class="padbutton">
                                 <button type="button" onclick="location.href='{url_viewer}'" class="btn btn-success btn-lg">Viewer</button>
@@ -70,6 +77,9 @@ async def root(background_tasks: BackgroundTasks):
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="credits">
+                <span class="badge bg-light"><i>Templates by <a href='https://bootswatch.com/flatly'>https://bootswatch.com/flatly</a> :)</span>
             </div>
         </body>
     </html>
