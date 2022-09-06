@@ -15,6 +15,7 @@ from app.interfaces.examples.joints import EXAMPLE_JOINTS
 
 TEMP = ".temp/converters"
 
+
 @pytest.fixture
 def temp_dir():
     temp_path = Path(TEMP).resolve()

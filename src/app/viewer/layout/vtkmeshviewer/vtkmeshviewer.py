@@ -78,7 +78,7 @@ class VtkMeshViewerAIO(html.Div):
                             style={"height": "100vh", "width": "100vw"},
                         )
                     ],
-                    type="circle"
+                    type="circle",
                 ),
             ],
             style={"height": "100vh", "width": "100vw"},

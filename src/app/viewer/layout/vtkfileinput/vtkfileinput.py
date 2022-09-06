@@ -36,8 +36,10 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         # Define the component's layout
         super().__init__(
             aio_id,
-            [   
-                make_toast(id=self.ids.exampletoast(aio_id), header="Invalid example error"),
+            [
+                make_toast(
+                    id=self.ids.exampletoast(aio_id), header="Invalid example error"
+                ),
                 make_toast(id=self.ids.texttoast(aio_id), header="Invalid json input"),
                 make_toast(id=self.ids.filetoast(aio_id), header="Invalid json file"),
                 html.Div(
@@ -51,7 +53,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                         "z-index": "1000",
                         "position": "absolute",
                         "display": "block",
-                        "padding": "10px"
+                        "padding": "10px",
                     },
                 ),
                 dbc.Offcanvas(
@@ -109,8 +111,17 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                     dbc.AccordionItem(
                                         [
                                             html.Div(
-                                                dbc.Button("Upload JSON", id=self.ids.textupload(aio_id), color="success", className="me-1", style={"padding": "10px"}),
-                                                style={"paddingTop":"10px", "paddingBottom":"10px"}
+                                                dbc.Button(
+                                                    "Upload JSON",
+                                                    id=self.ids.textupload(aio_id),
+                                                    color="success",
+                                                    className="me-1",
+                                                    style={"padding": "10px"},
+                                                ),
+                                                style={
+                                                    "paddingTop": "10px",
+                                                    "paddingBottom": "10px",
+                                                },
                                             ),
                                             # json input
                                             dbc.Textarea(
@@ -118,19 +129,19 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                                 valid=True,
                                                 className="mb-3",
                                                 placeholder="Paste JSON data here",
-                                                style={"height":"100%"}
+                                                style={"height": "100%"},
                                             ),
                                         ],
-                                        title="JSON data input"
+                                        title="JSON data input",
                                     ),
                                 ],
-                                style={"paddingTop": "20px"}
+                                style={"paddingTop": "20px"},
                             ),
                         ],
                         style={"height": "100%", "width": "100%", "maxWidth": "100%"},
                     ),
                     id=self.ids.sidepanel(aio_id),
-                    is_open=True
+                    is_open=True,
                 ),
             ],
             options,
@@ -205,7 +216,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         Output(ids.filetoast(MATCH), "children"),
         Input(ids.fileupload(MATCH), "contents"),
         State(ids.fileupload(MATCH), "filename"),
-        prevent_initial_call=True
+        prevent_initial_call=True,
     )
     def load_file(file_contents, filename):
         try:

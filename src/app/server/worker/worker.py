@@ -5,10 +5,12 @@ from .job import Job, JobStatus
 from ...converters.model import convert_joint_to_dash_vtk
 
 SENTINEL = "STOP"
-DELAY = 5 # ms
+DELAY = 5  # ms
+
 
 class WorkerException(Exception):
     pass
+
 
 class Singleton(object):
     def __new__(cls, *args, **kwds):
@@ -18,11 +20,12 @@ class Singleton(object):
         cls.__it__ = it = object.__new__(cls)
         it.init(*args, **kwds)
         return it
+
     def init(self, *args, **kwds):
         pass
 
-class Worker(Singleton, Process):
 
+class Worker(Singleton, Process):
     def __init__(self):
         super(Worker, self).__init__()
         self._inqueue = Queue()
@@ -47,7 +50,7 @@ class Worker(Singleton, Process):
             self.inqueue.put(SENTINEL)
             if self.is_alive():
                 self.join()
-    
+
     def run(self):
         while True:
             if self.stop_event.is_set():
@@ -84,7 +87,9 @@ class Worker(Singleton, Process):
 
 def run_job(worker: Worker, job: Job):
     if not worker.is_alive():
-        raise WorkerException("Worker performing gmsh operations is not running, please contact the administrator")
+        raise WorkerException(
+            "Worker performing gmsh operations is not running, please contact the administrator"
+        )
 
     worker.inqueue.put(job)
 

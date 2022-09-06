@@ -1,5 +1,6 @@
 import dash_vtk
 
+
 def vtk_to_dash(data: dict[str, list]) -> dash_vtk.PolyData:
     return dash_vtk.PolyData(
         points=data["points"],

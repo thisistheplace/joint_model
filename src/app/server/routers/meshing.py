@@ -16,6 +16,7 @@ router = APIRouter()
 # get worker singleton
 worker = Worker()
 
+
 def do_meshing(joint: Joint) -> StreamingResponse:
     job = Job(joint)
     try:
@@ -31,6 +32,7 @@ def do_meshing(joint: Joint) -> StreamingResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
 
+
 @router.get("/examples/{jointname}")
 def mesh_example(jointname: str):
     if jointname not in EXAMPLE_JOINTS:
@@ -38,6 +40,7 @@ def mesh_example(jointname: str):
             status_code=404, detail=f"Joint model {jointname} not found"
         )
     return do_meshing(EXAMPLE_JOINTS[jointname])
+
 
 @router.post("/meshmodel")
 def mesh_model(model: Model):

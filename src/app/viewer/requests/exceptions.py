@@ -3,6 +3,7 @@ from requests import Response
 
 from ...constants import RESTAPI_URL
 
+
 class MeshApiHttpError(Exception):
     def __init__(self, response: Response):
         # Catch response for "Unprocecessable entity"
@@ -17,8 +18,8 @@ class MeshApiHttpError(Exception):
                     html.A(
                         "Click here to review the required input format.",
                         href=f"{RESTAPI_URL}/docs",
-                        target="_blank"
-                    )
+                        target="_blank",
+                    ),
                 ]
             )
             self.toast_message = msg

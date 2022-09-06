@@ -8,8 +8,10 @@ from app.constants import VIEWER_URL, RESTAPI_URL
 
 router = APIRouter()
 
+
 def ping_viewer():
     requests.get(VIEWER_URL)
+
 
 @router.get("/", response_class=HTMLResponse)
 async def root(background_tasks: BackgroundTasks):
