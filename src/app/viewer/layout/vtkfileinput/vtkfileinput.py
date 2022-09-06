@@ -14,13 +14,13 @@ import dash_bootstrap_components as dbc
 from ast import literal_eval
 import uuid
 
-from app.interfaces.validation import validate_json
-
+from .fileutils import parse_contents
 from ..ids import Ids
 from ..toast import make_toast
 from ..vtkmeshviewer import VtkMeshViewerAIO
 from ....interfaces import Model
 from ....interfaces.examples.joints import EXAMPLE_JOINTS
+from ....interfaces.validation import validate_json
 
 
 class VtkFileInputAIO(VtkMeshViewerAIO):
@@ -39,6 +39,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             [   
                 make_toast(id=self.ids.exampletoast(aio_id), header="Invalid example error"),
                 make_toast(id=self.ids.texttoast(aio_id), header="Invalid json input"),
+                make_toast(id=self.ids.filetoast(aio_id), header="Invalid json file"),
                 html.Div(
                     dbc.Button(
                         html.I(className="fa fa-bars"),
@@ -57,6 +58,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                     dbc.Container(
                         [
                             dcc.Store(id=self.ids.textjsonstore(aio_id)),
+                            dcc.Store(id=self.ids.filejsonstore(aio_id)),
                             html.Div(
                                 dbc.Button(
                                     html.I(className="fa-solid fa-xmark"),
@@ -142,11 +144,15 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         Output(ids.exampletoast(MATCH), "children"),
         Input(ids.dropdown(MATCH), "value"),
         Input(ids.textjsonstore(MATCH), "data"),
+        Input(ids.filejsonstore(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def get_example_joint(option, json_data):
-        if option is None and json_data is not None:
-            return json_data, no_update, no_update
+    def get_example_joint(option, text_json, file_json):
+        if option is None:
+            if text_json is not None:
+                return text_json, no_update, no_update
+            if file_json is not None:
+                return file_json, no_update, no_update
         if option not in EXAMPLE_JOINTS:
             msg = f"Model {option} is not in the available models!"
             return no_update, True, msg
@@ -193,60 +199,17 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             except Exception as e:
                 return no_update, True, str(e)
 
-    # @app.callback(
-    #     Output("wheel-interval", "max_intervals"),
-    #     Input('upload-data', 'contents'),
-    #     Input(self.id, 'ifc_file_contents'),
-    #     State("upload-data", "filename"),
-    #     State(self.id, 'ifc_file_contents'),
-    #     prevent_initial_call=True
-    # )
-    # def check_loader(file_contents, new_contents, filename, old_data):
-    #     if parse_contents(file_contents, filename) == old_data:
-    #         return 0
-    #     else:
-    #         return -1
-
-    # @app.callback(
-    #     Output("wheel-interval", "interval"),
-    #     Input('wheel-interval', 'n_intervals'),
-    #     prevent_initial_call=True
-    # )
-    # def model_loading_wheel(n):
-    #     time.sleep(0.5)
-    #     return no_update
-
-    # @app.callback(
-    #     Output("user-model-load-error", "is_open"),
-    #     Output("user-model-load-error", "children"),
-    #     Output(self.id, "ifc_file_contents"),
-    #     Input('upload-data', 'contents'),
-    #     State('upload-data', 'filename'),
-    #     prevent_initial_call=True
-    # )
-    # def model_to_ifc(file_contents, filename):
-    #     try:
-    #         ifc_data = parse_contents(file_contents, filename)
-    #         return False, no_update, ifc_data
-    #     except Exception as e:
-    #         return True, f"Failed to load model:\n{e}", no_update
-
-    # @app.callback(
-    #     Output("default-model-load-error", "is_open"),
-    #     Output("default-model-load-error", "children"),
-    #     Output('upload-data', 'contents'),
-    #     Output('upload-data', 'filename'),
-    #     Output('select-model', 'label'),
-    #     Input({'type': 'model-selection', 'index': ALL}, 'n_clicks'),
-    #     State({'type': 'model-selection', 'index': ALL}, 'children'),
-    #     prevent_initial_call=True
-    # )
-    # def download_model(n_clicks, labels):
-    #     try:
-    #         button_info = literal_eval(callback_context.triggered[0]["prop_id"].split(".")[0])
-    #         model_name = labels[button_info["index"]]
-    #         fname, model = read_model(model_name)
-    #         model_bytes = base64.b64encode(bytes(model, 'utf-8'))
-    #         return no_update, no_update, f"none,{str(model_bytes, 'utf-8')}", fname, model_name
-    #     except Exception as e:
-    #         return True, f"Failed to load model:\n{e}", no_update, no_update, no_update
+    @callback(
+        Output(ids.filejsonstore(MATCH), "data"),
+        Output(ids.filetoast(MATCH), "is_open"),
+        Output(ids.filetoast(MATCH), "children"),
+        Input(ids.fileupload(MATCH), "contents"),
+        State(ids.fileupload(MATCH), "filename"),
+        prevent_initial_call=True
+    )
+    def load_file(file_contents, filename):
+        try:
+            json_data = parse_contents(file_contents, filename)
+            return json_data, False, no_update
+        except Exception as e:
+            return no_update, True, str(e)
