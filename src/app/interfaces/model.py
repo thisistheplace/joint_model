@@ -1,15 +1,14 @@
 from pydantic import BaseModel
 
-from .geometry import Axis3D, Point3D
+from .geometry import Joint
+from .examples.joints import EXAMPLE_JOINTS
 
 
-class Tubular(BaseModel):
+class Model(BaseModel):
     name: str = ...
-    axis: Axis3D = ...
-    diameter: float = ...
-
-
-class Joint(BaseModel):
-    name: str = ...
-    tubes: list[Tubular] = ...
-    origin: Point3D | None = None
+    joint: Joint = ...
+    class Config:
+        schema_extra = {
+            "name": "TJoint",
+            "joint": EXAMPLE_JOINTS["TJoint"].json()
+        }
