@@ -95,7 +95,7 @@ class VtkMeshViewerAIO(html.Div):
                                     255,
                                     255,
                                 ],  # RGB array of floating point values between 0 and 1.
-                                # interactorSettings=[...],       # Binding of mouse events to camera action (Rotate, Pan, Zoom...)
+                                # interactorSettings=[...], # Binding of mouse events to camera action (Rotate, Pan, Zoom...)
                                 cameraPosition=[
                                     0,
                                     5,
