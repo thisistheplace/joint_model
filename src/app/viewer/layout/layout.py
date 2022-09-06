@@ -1,50 +1,60 @@
-from dash import Output, Input, State, html, dcc, callback, MATCH, no_update
+from dash import (
+    Output,
+    Input,
+    State,
+    html,
+    dcc,
+    callback,
+    MATCH,
+    no_update,
+    callback_context,
+)
 import dash_bootstrap_components as dbc
 
-from typing import Any
+from ast import literal_eval
 import uuid
 
 from .vtk import VtkMeshViewerAIO
 
-class ValidationError(Exception):
-    def __init__(self, obj, attr_name):            
-        # Call the base class constructor with the parameters it needs
-        super().__init__(f"Parent of type {type(obj)} does not have required attribute {attr_name}")
-
-def check_attr(obj, attr_name):
-    if not hasattr(obj, attr_name):
-        raise ValidationError(obj, attr_name)
-
-def validate_parent(parent: Any):
-    to_check = {
-        "ids": parent,
-        "store": parent.id,
-        "vtk": parent.id
-    }
-    for attr_name, obj in to_check.items():
-        check_attr(obj, attr_name)
 
 class VtkFileInputAIO(VtkMeshViewerAIO):
     # A set of functions that create pattern-matching callbacks of the subcomponents
+    # Extend for components added by the layout
     class ids(VtkMeshViewerAIO.ids):
+        dropdown = lambda aio_id: {
+            "component": "VtkMeshViewerAIO",
+            "subcomponent": "dropdown",
+            "aio_id": aio_id,
+        }
         freeinput = lambda aio_id: {
-            "component": "JsonInputAIO",
+            "component": "VtkFileInputAIO",
             "subcomponent": "freeinput",
             "aio_id": aio_id,
         }
         fileupload = lambda aio_id: {
-            "component": "JsonInputAIO",
+            "component": "VtkFileInputAIO",
             "subcomponent": "fileupload",
             "aio_id": aio_id,
         }
-        close = lambda aio_id: {
-            "component": "JsonInputAIO",
-            "subcomponent": "close",
+        inputstore = lambda aio_id: {
+            "component": "VtkFileInputAIO",
+            "subcomponent": "inputstore",
             "aio_id": aio_id,
         }
-        inputstore = lambda aio_id: {
-            "component": "JsonInputAIO",
-            "subcomponent": "inputstore",
+        # Sidepanel stuff
+        sidepanel = lambda aio_id: {
+            "component": "VtkFileInputAIO",
+            "subcomponent": "sidepanel",
+            "aio_id": aio_id,
+        }
+        open = lambda aio_id: {
+            "component": "VtkFileInputAIO",
+            "subcomponent": "open",
+            "aio_id": aio_id,
+        }
+        close = lambda aio_id: {
+            "component": "VtkFileInputAIO",
+            "subcomponent": "close",
             "aio_id": aio_id,
         }
 
@@ -52,74 +62,168 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
     ids = ids
 
     # Define the arguments of the All-in-One component
-    def __init__(self, parent: Any):
-        """VtkFileInputAIO is an All-In-One component which passes JSON data to a rest API
-
-        It is tightly coupled to the parent component.
-        """
-        if parent is None:
-            raise TypeError("parent must not be None!")
-
-        validate_parent(parent)
-
-        if aio_id is None:
-            aio_id = str(uuid.uuid4())
+    def __init__(self, options: list[str]):
+        """VtkFileInputAIO is an All-In-One component which passes JSON data to a rest API"""
+        aio_id = str(uuid.uuid4())
 
         # Define the component's layout
         super().__init__(
-            [  # Equivalent to `html.Div([...])`
-                dbc.Container(
-                    [
-                        dcc.Store(id=self.ids.inputstore(aio_id)),
-                        html.Div(
-                            dbc.Button(
-                                html.I(className="fa-solid fa-xmark"),
-                                id="sidebar-close",
-                                className="mb-3",
-                                n_clicks=0,
-                                style={"zindex": "10"}
-                            ),
-                            style={"position":"absolute", "display":"block", "top":"0px", "right":"0px", "padding":"20px"}
-                        ),
-                        # Heading data
-                        html.Div(
-                            "In progress...",
-                            style={"padding": "30px"}
-                        ),
-                    ],
+            aio_id,
+            [
+                dbc.Button(
+                    html.I(className="fa fa-bars"),
+                    id=self.ids.open(aio_id),
+                    className="mb-3",
+                    n_clicks=0,
                     style={
-                        "height": "100%",
-                        "width": "100%",
-                        "maxWidth":"100%"
+                        "zindex": "1000",
+                        "position": "absolute",
+                        "display": "block",
                     },
-                )
+                ),
+                dbc.Offcanvas(
+                    dbc.Container(
+                        [
+                            dcc.Store(id=self.ids.inputstore(aio_id)),
+                            html.Div(
+                                dbc.Button(
+                                    html.I(className="fa-solid fa-xmark"),
+                                    id=self.ids.close(aio_id),
+                                    className="mb-3",
+                                    n_clicks=0,
+                                ),
+                                style={
+                                    "position": "absolute",
+                                    "display": "block",
+                                    "top": "0px",
+                                    "right": "0px",
+                                    "padding": "20px",
+                                    "zindex": "1000",
+                                },
+                            ),
+                            dbc.Accordion(
+                                [
+                                    dbc.AccordionItem(
+                                        dcc.Dropdown(
+                                            options, id=self.ids.dropdown(aio_id)
+                                        ),
+                                        title="Select model",
+                                    ),
+                                    dbc.AccordionItem(
+                                        dcc.Upload(
+                                            id="upload-data",
+                                            children=html.Div(
+                                                [
+                                                    "Drag and Drop or ",
+                                                    html.A("Select Files"),
+                                                ]
+                                            ),
+                                            style={
+                                                "width": "100%",
+                                                "height": "60px",
+                                                "lineHeight": "60px",
+                                                "borderWidth": "1px",
+                                                "borderStyle": "dashed",
+                                                "borderRadius": "5px",
+                                                "textAlign": "center",
+                                                "margin": "10px",
+                                            },
+                                            multiple=False,
+                                        ),
+                                        title="Upload file",
+                                    ),
+                                ]
+                            ),
+                        ],
+                        style={"height": "100%", "width": "100%", "maxWidth": "100%"},
+                    ),
+                    id=self.ids.sidepanel(aio_id),
+                    is_open=True,
+                ),
             ],
-            style={"height": "100vh", "width": "100vw"},
+            options,
         )
 
     # Define this component's stateless pattern-matching callback
     # that will apply to every instance of this component.
-    # @callback(
-    #     Output(ids.vtk(MATCH), "children"),
-    #     Output(ids.store(MATCH), "data"),
-    #     Output(ids.toast(MATCH), "is_open"),
-    #     Output(ids.toast(MATCH), "children"),
-    #     Input(ids.dropdown(MATCH), "value"),
-    #     prevent_initial_callback=True,
+    @callback(
+        Output(ids.store(MATCH), "data"),
+        Input(ids.dropdown(MATCH), "value"),
+        prevent_initial_call=True,
+    )
+    def check_loader(option):
+        return option
+
+    @callback(
+        Output(ids.sidepanel(MATCH), "is_open"),
+        Input(ids.open(MATCH), "n_clicks"),
+        Input(ids.close(MATCH), "n_clicks"),
+        prevent_initial_callback=True,
+    )
+    def toggle_collapse(n_open, n_close):
+        button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+        button_id = literal_eval(button_id)
+        if button_id["subcomponent"] == "open":
+            return True
+        elif button_id["subcomponent"] == "close":
+            return False
+        else:
+            return no_update
+
+    # @app.callback(
+    #     Output("wheel-interval", "max_intervals"),
+    #     Input('upload-data', 'contents'),
+    #     Input(self.id, 'ifc_file_contents'),
+    #     State("upload-data", "filename"),
+    #     State(self.id, 'ifc_file_contents'),
+    #     prevent_initial_call=True
     # )
-    # def update_markdown_style(option):
-    #     if option is None:
-    #         return no_update
+    # def check_loader(file_contents, new_contents, filename, old_data):
+    #     if parse_contents(file_contents, filename) == old_data:
+    #         return 0
+    #     else:
+    #         return -1
+
+    # @app.callback(
+    #     Output("wheel-interval", "interval"),
+    #     Input('wheel-interval', 'n_intervals'),
+    #     prevent_initial_call=True
+    # )
+    # def model_loading_wheel(n):
+    #     time.sleep(0.5)
+    #     return no_update
+
+    # @app.callback(
+    #     Output("user-model-load-error", "is_open"),
+    #     Output("user-model-load-error", "children"),
+    #     Output(self.id, "ifc_file_contents"),
+    #     Input('upload-data', 'contents'),
+    #     State('upload-data', 'filename'),
+    #     prevent_initial_call=True
+    # )
+    # def model_to_ifc(file_contents, filename):
     #     try:
-    #         json_bytes = asyncio.run(get_mesh(option))
-    #         json_data = json.loads(json_bytes.decode("utf-8"))
-    #         return (
-    #             dash_vtk.GeometryRepresentation(
-    #                 [dash_vtk.GeometryRepresentation(vtk_to_dash(json_data))]
-    #             ),
-    #             option,
-    #             no_update,
-    #             no_update,
-    #         )
+    #         ifc_data = parse_contents(file_contents, filename)
+    #         return False, no_update, ifc_data
     #     except Exception as e:
-    #         return no_update, no_update, True, str(e)
+    #         return True, f"Failed to load model:\n{e}", no_update
+
+    # @app.callback(
+    #     Output("default-model-load-error", "is_open"),
+    #     Output("default-model-load-error", "children"),
+    #     Output('upload-data', 'contents'),
+    #     Output('upload-data', 'filename'),
+    #     Output('select-model', 'label'),
+    #     Input({'type': 'model-selection', 'index': ALL}, 'n_clicks'),
+    #     State({'type': 'model-selection', 'index': ALL}, 'children'),
+    #     prevent_initial_call=True
+    # )
+    # def download_model(n_clicks, labels):
+    #     try:
+    #         button_info = literal_eval(callback_context.triggered[0]["prop_id"].split(".")[0])
+    #         model_name = labels[button_info["index"]]
+    #         fname, model = read_model(model_name)
+    #         model_bytes = base64.b64encode(bytes(model, 'utf-8'))
+    #         return no_update, no_update, f"none,{str(model_bytes, 'utf-8')}", fname, model_name
+    #     except Exception as e:
+    #         return True, f"Failed to load model:\n{e}", no_update, no_update, no_update

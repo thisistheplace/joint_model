@@ -60,5 +60,5 @@ DEMO_MODELS = {
                 diameter=0.4,
             ),
         ],
-    )
+    ),
 }

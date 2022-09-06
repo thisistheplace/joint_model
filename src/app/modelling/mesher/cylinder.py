@@ -8,6 +8,7 @@ from ...interfaces.geometry import *
 
 FACTORY = gmsh.model.occ
 
+
 def rotatexy(dimTags: list[tuple[int, int]], origin: Point3D, vector: Vector3D):
     xangle = angle_between([0, 0, 1], [0, vector.y, vector.z])
     FACTORY.rotate(dimTags, origin.x, origin.y, origin.z, 1, 0, 0, xangle)
@@ -18,6 +19,7 @@ def rotatexy(dimTags: list[tuple[int, int]], origin: Point3D, vector: Vector3D):
     FACTORY.synchronize()
     print(vector)
     print(xangle, yangle)
+
 
 def add_tube(tube: Tubular) -> tuple[int, int]:
     origin = tube.axis.point
@@ -40,7 +42,7 @@ def add_tube(tube: Tubular) -> tuple[int, int]:
     print(ring)
     rotatexy([(1, ring)], origin, vector)
     pipe = FACTORY.addPipe([(1, ring)], wire)
-    
+
     # We delete the source surface, and increase the number of sub-edges for a
     # nicer display of the geometry:
     FACTORY.remove([(1, ring)])

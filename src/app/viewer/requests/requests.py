@@ -2,8 +2,8 @@ import io
 import os
 import requests
 
-from .constants import ENDPOINT
-from .models import DEMO_MODELS
+from ..constants import ENDPOINT
+from ..models import DEMO_MODELS
 
 
 async def get_mesh(option: str) -> str:

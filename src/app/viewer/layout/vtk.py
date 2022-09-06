@@ -6,18 +6,14 @@ import json
 import time
 import uuid
 
-from .general import make_toast
+from .toast import make_toast
 from ..requests.requests import get_mesh
 from ..gmsh_to_dash import vtk_to_dash
+
 
 class VtkMeshViewerAIO(html.Div):
     # A set of functions that create pattern-matching callbacks of the subcomponents
     class ids:
-        dropdown = lambda aio_id: {
-            "component": "VtkMeshViewerAIO",
-            "subcomponent": "dropdown",
-            "aio_id": aio_id,
-        }
         vtk = lambda aio_id: {
             "component": "VtkMeshViewerAIO",
             "subcomponent": "vtk",
@@ -48,7 +44,12 @@ class VtkMeshViewerAIO(html.Div):
     ids = ids
 
     # Define the arguments of the All-in-One component
-    def __init__(self, options: list[str], aio_id: str | None = None):
+    def __init__(
+        self,
+        aio_id: str | None = None,
+        children: list | list = list,
+        options: list[str] | None = None,
+    ):
         """VtkMeshViewerAIO is an All-In-One component which visualizes VTK meshes
 
         Args:
@@ -63,9 +64,11 @@ class VtkMeshViewerAIO(html.Div):
 
         # Define the component's layout
         super().__init__(
-            [  # Equivalent to `html.Div([...])`
-                dcc.Dropdown(options, id=self.ids.dropdown(aio_id)),
-                dcc.Interval(id=self.ids.interval(aio_id), interval=500, max_intervals=0),
+            children
+            + [  # Equivalent to `html.Div([...])`
+                dcc.Interval(
+                    id=self.ids.interval(aio_id), interval=500, max_intervals=0
+                ),
                 make_toast(id=self.ids.toast(aio_id)),
                 dcc.Store(id=self.ids.store(aio_id)),
                 dcc.Loading(
@@ -109,10 +112,9 @@ class VtkMeshViewerAIO(html.Div):
     # that will apply to every instance of this component.
     @callback(
         Output(ids.vtk(MATCH), "children"),
-        Output(ids.store(MATCH), "data"),
         Output(ids.toast(MATCH), "is_open"),
         Output(ids.toast(MATCH), "children"),
-        Input(ids.dropdown(MATCH), "value"),
+        Input(ids.store(MATCH), "data"),
         prevent_initial_callback=True,
     )
     def update_markdown_style(option):
@@ -125,12 +127,11 @@ class VtkMeshViewerAIO(html.Div):
                 dash_vtk.GeometryRepresentation(
                     [dash_vtk.GeometryRepresentation(vtk_to_dash(json_data))]
                 ),
-                option,
                 no_update,
                 no_update,
             )
         except Exception as e:
-            return no_update, no_update, True, str(e)
+            return no_update, True, str(e)
 
     @callback(
         Output(ids.interval(MATCH), "interval"),
@@ -143,12 +144,11 @@ class VtkMeshViewerAIO(html.Div):
 
     @callback(
         Output(ids.interval(MATCH), "max_intervals"),
-        Input(ids.dropdown(MATCH), "value"),
         Input(ids.store(MATCH), "data"),
         State(ids.store(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def check_loader(new_selection, _, old_selection):
+    def check_loader(new_selection, old_selection):
         if new_selection == old_selection:
             return 0
         else:

@@ -9,9 +9,11 @@ from ...interfaces.model import *
 
 FACTORY = gmsh.model.occ
 
+
 def mesh_tubular(tube: Tubular) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     return add_cylinder(tube)
+
 
 def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
     joint_mesh = {tube.name: mesh_tubular(tube) for tube in joint.tubes}
@@ -20,6 +22,7 @@ def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
         gmsh.model.setPhysicalName(dim, gid, k)
     return joint_mesh
+
 
 @contextmanager
 def mesh_model(joint: Joint) -> gmsh.model.mesh:
@@ -37,7 +40,9 @@ def mesh_model(joint: Joint) -> gmsh.model.mesh:
             FACTORY.synchronize()
             if len(intersect[0]) > 0:
                 # if there is an intersection, do what you want to do.
-                FACTORY.remove(intersect[0], True)  # remove created intersection objects
+                FACTORY.remove(
+                    intersect[0], True
+                )  # remove created intersection objects
                 FACTORY.synchronize()
             else:
                 pass
