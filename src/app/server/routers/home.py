@@ -22,7 +22,7 @@ async def root(background_tasks: BackgroundTasks):
     html_content = f"""
     <html>
         <head>
-            <title>Joint Meshing API</title>
+            <title>Joint Meshing REST API</title>
             <!--using same theme as Dash Flatly-->
             <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.2.0/dist/flatly/bootstrap.min.css" rel="stylesheet">
             <style>
@@ -46,15 +46,15 @@ async def root(background_tasks: BackgroundTasks):
             </style>
         </head>
         <body>
-            <h1 sty>Joint Meshing API</h1>
+            <h1 sty>Joint Meshing REST API</h1>
             <div class="row"> 
                 <div class="col-lg-4">
-                    <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
+                    <div class="card text-white bg-primary mb-3" style="max-width: 20rem; height: 100%;">
                         <div class="card-header">RestAPI</div>
                         <div class="card-body">
                             <h4 class="card-title">Create joint meshes</h4>
-                            <p class="card-text">A RestAPI is available to generate joint meshes from json input.</p>
-                            <p class="card-text">This RestAPI is developed using <a href='https://fastapi.tiangolo.com'>FastAPI</a>.</p>
+                            <p class="card-text">A REST API is available to generate joint meshes from json input.</p>
+                            <p class="card-text">This REST API is developed using <a href='https://fastapi.tiangolo.com'>FastAPI</a>.</p>
                             <div class="padbutton">
                                 <button type="button" onclick="location.href='{url_docs}'" class="btn btn-success btn-lg">Docs</button>
                             </div>
@@ -65,11 +65,11 @@ async def root(background_tasks: BackgroundTasks):
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
+                    <div class="card text-white bg-primary mb-3" style="max-width: 20rem; height: 100%;">
                         <div class="card-header">Viewer</div>
                         <div class="card-body">
                             <h4 class="card-title">View joint meshes</h4>
-                            <p class="card-text">You can create <b>and</b> view joint meshes using a user interface. This uses the RestAPI under the hood.</p>
+                            <p class="card-text">You can create <b>and</b> view joint meshes using a user interface. This uses the REST API under the hood.</p>
                             <p class="card-text">This viewer is developed using <a href='https://dash.plotly.com/vtk'>Dash VTK</a>.</p>
                             <div class="padbutton">
                                 <button type="button" onclick="location.href='{url_viewer}'" class="btn btn-success btn-lg">Viewer</button>
