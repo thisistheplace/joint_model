@@ -1,30 +1,14 @@
 from dash import Output, Input, State, html, dcc, callback, MATCH, no_update
-
 import dash_vtk
-
-import dash_bootstrap_components as dbc
 
 import asyncio
 import json
 import time
 import uuid
 
-from .requests import get_mesh
-from .gmsh_to_dash import vtk_to_dash
-
-
-def make_toast(id: str):
-    return dbc.Toast(
-        id=id,
-        header="Model load error",
-        is_open=False,
-        dismissable=True,
-        icon="danger",
-        duration=3000,
-        # top: 66 positions the toast below the navbar
-        style={"position": "fixed", "top": 66, "right": 10, "width": 350, "zIndex": 1000},
-    )
-
+from .general import make_toast
+from ..requests.requests import get_mesh
+from ..gmsh_to_dash import vtk_to_dash
 
 class VtkMeshViewerAIO(html.Div):
     # A set of functions that create pattern-matching callbacks of the subcomponents
