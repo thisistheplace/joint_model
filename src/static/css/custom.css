@@ -14,6 +14,13 @@ body {
 
 .fullwidth {
     width: 100vw;
+    margin-bottom: 1em;
+}
+
+.maincontent {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 h1 {
@@ -25,12 +32,23 @@ h1 {
     padding-bottom: 5px;
 }
 
+.credits .container:after {
+    height: 1em;
+}
+
 .credits {
-    display: block;
-    position: absolute;
-    right: 0px;
-    bottom: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
     padding: 1em;
+}
+
+.fillbottom {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 3;
+    height: 100%;
+    justify-content: end;
 }
 
 .padcard {
