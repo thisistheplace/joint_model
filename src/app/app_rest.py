@@ -3,9 +3,9 @@ from fastapi.staticfiles import StaticFiles
 
 import os
 
-from app.constants import VIEWER_URL, RESTAPI_URL
-from app.server.routers import home, meshing
-from app.server.worker.worker import Worker
+from .constants import VIEWER_URL, RESTAPI_URL
+from .server.routers import home, meshing
+from .server.worker.worker import Worker
 
 app = FastAPI()
 app.include_router(home.router)
