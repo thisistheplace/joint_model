@@ -17,7 +17,6 @@ def point():
         z = 3.0
     )
 
-
 class TestValidateAndConvertJson:
 
     def test_valid_conversion(self, point):
