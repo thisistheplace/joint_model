@@ -11,7 +11,7 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 
-from ast import literal_eval
+import json
 import uuid
 
 from .fileutils import parse_contents
@@ -83,7 +83,21 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                         dcc.Dropdown(
                                             options, id=self.ids.dropdown(aio_id)
                                         ),
-                                        title="Select model",
+                                        title="Mesh example model",
+                                    ),
+                                    dbc.AccordionItem(
+                                        [
+                                            dbc.Button(
+                                                "Download",
+                                                id=self.ids.downloadbutton(aio_id),
+                                                className="mb-3",
+                                                n_clicks=0,
+                                            ),
+                                            dcc.Download(
+                                                id=self.ids.download(aio_id),
+                                            ),
+                                        ],
+                                        title="Download example model",
                                     ),
                                     dbc.AccordionItem(
                                         dcc.Upload(
@@ -158,17 +172,17 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         Input(ids.filejsonstore(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def get_example_joint(option, text_json, file_json):
-        if option is None:
+    def get_example_joint(modelname, text_json, file_json):
+        if modelname is None:
             if text_json is not None:
                 return text_json, no_update, no_update
             if file_json is not None:
                 return file_json, no_update, no_update
-        if option not in EXAMPLE_JOINTS:
-            msg = f"Model {option} is not in the available models!"
+        if modelname not in EXAMPLE_JOINTS:
+            msg = f"Model {modelname} is not in the available models!"
             return no_update, True, msg
         # create model response
-        model = Model(name=option, joint=EXAMPLE_JOINTS[option])
+        model = Model(name=modelname, joint=EXAMPLE_JOINTS[modelname])
         return model.json(), no_update, no_update
 
     @callback(
@@ -181,7 +195,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         if button_id == "":
             return no_update
-        button_id = literal_eval(button_id)
+        button_id = json.loads(button_id)
         if button_id["subcomponent"] == "open":
             return True
         elif button_id["subcomponent"] == "close":
@@ -224,3 +238,19 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             return json_data, False, no_update
         except Exception as e:
             return no_update, True, str(e)
+
+    @callback(
+    Output(ids.download(MATCH), "data"),
+    Input(ids.downloadbutton(MATCH), "n_clicks"),
+    State(ids.dropdown(MATCH), "value"),
+    prevent_initial_call=True,
+    )
+    def func(n_clicks, modelname):
+        if modelname not in EXAMPLE_JOINTS.keys():
+            modelname = list(EXAMPLE_JOINTS.keys())[-1]
+        modelobj = Model(
+            name = modelname,
+            joint = EXAMPLE_JOINTS[modelname]
+        )
+        modeldata = json.loads(modelobj.json())
+        return dcc.send_string(json.dumps(modeldata, indent=4), f"{modelname}.json")

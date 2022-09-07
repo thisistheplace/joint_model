@@ -34,7 +34,7 @@ def do_meshing(joint: Joint) -> StreamingResponse:
 
 
 @router.get("/examples/{jointname}")
-def mesh_example(jointname: str):
+def mesh_joint_example(jointname: str):
     if jointname not in EXAMPLE_JOINTS:
         raise HTTPException(
             status_code=404, detail=f"Joint model {jointname} not found"
@@ -43,6 +43,6 @@ def mesh_example(jointname: str):
 
 
 @router.post("/meshmodel")
-def mesh_model(model: Model):
+def mesh_joint_model(model: Model):
     # do some validation here!
     return do_meshing(model.joint)
