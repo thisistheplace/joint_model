@@ -14,3 +14,7 @@ app = Dash(
 server = app.server
 
 app.layout = VtkFileInputAIO(options=list(EXAMPLE_JOINTS.keys()))
+
+@app.server.route("/ping")
+def ping():
+  return "{status: ok}"

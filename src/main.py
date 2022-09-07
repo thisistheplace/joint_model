@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 import os
 
@@ -9,6 +10,7 @@ from app.server.worker.worker import Worker
 app = FastAPI()
 app.include_router(home.router)
 app.include_router(meshing.router)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # setup workers
 worker = Worker()
