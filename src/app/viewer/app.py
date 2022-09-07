@@ -9,12 +9,13 @@ from .layout import VtkFileInputAIO
 app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME],
-    title="JointMesh"
+    title="JointMesh",
 )
 server = app.server
 
 app.layout = VtkFileInputAIO(options=list(EXAMPLE_MODELS.keys()))
 
+
 @app.server.route("/ping")
 def ping():
-  return "{status: ok}"
+    return "{status: ok}"

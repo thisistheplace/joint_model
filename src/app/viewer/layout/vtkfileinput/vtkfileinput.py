@@ -247,11 +247,11 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             return no_update, True, str(e)
 
     @callback(
-    Output(ids.downloader(MATCH), "data"),
-    Input(ids.downloadinput(MATCH), "n_clicks"),
-    Input(ids.downloadmesh(MATCH), "n_clicks"),
-    State(ids.jsonstore(MATCH), "value"),
-    prevent_initial_call=True,
+        Output(ids.downloader(MATCH), "data"),
+        Input(ids.downloadinput(MATCH), "n_clicks"),
+        Input(ids.downloadmesh(MATCH), "n_clicks"),
+        State(ids.jsonstore(MATCH), "value"),
+        prevent_initial_call=True,
     )
     def func(input, mesh, modeldata):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
@@ -267,7 +267,9 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         # generate mesh if required
         if button_id["subcomponent"] == "downloadmesh":
             json_model = asyncio.run(get_mesh(json_model))
-        
+
         modeldata = json.loads(json_model.json())
 
-        return dcc.send_string(json.dumps(modeldata, indent=4), f"{json_model.name}.json")
+        return dcc.send_string(
+            json.dumps(modeldata, indent=4), f"{json_model.name}.json"
+        )

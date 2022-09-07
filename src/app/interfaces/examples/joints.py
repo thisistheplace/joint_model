@@ -22,7 +22,7 @@ EXAMPLE_MODELS = {
                     diameter=0.25,
                 ),
             ],
-        )
+        ),
     ),
     "KJoint": Model(
         name="KJoint",
@@ -66,5 +66,5 @@ EXAMPLE_MODELS = {
                 ),
             ],
         ),
-    )
+    ),
 }

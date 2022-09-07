@@ -2,11 +2,12 @@ import dash_vtk
 
 from ..interfaces import DashVtkModel
 
+
 def vtk_to_dash(model: DashVtkModel) -> dash_vtk.PolyData:
     return dash_vtk.PolyData(
-        points = model.mesh.points,
-        lines = model.mesh.lines,
-        polys = model.mesh.polys,
+        points=model.mesh.points,
+        lines=model.mesh.lines,
+        polys=model.mesh.polys,
         children=[
             dash_vtk.PointData(
                 [

@@ -54,8 +54,4 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
         lines += line
         polys += poly
 
-    return DashVtkMesh(
-        points = points,
-        lines = lines,
-        polys = polys
-    )
+    return DashVtkMesh(points=points, lines=lines, polys=polys)
