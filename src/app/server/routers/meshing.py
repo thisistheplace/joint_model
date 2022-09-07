@@ -21,11 +21,10 @@ def do_meshing(model: Model) -> StreamingResponse:
     job = Job(model)
     try:
         job = run_job(worker, job)
-        json_mesh = json.loads(job.mesh.json())
 
         def iterfile():
             with io.StringIO() as file_like:
-                json.dump(json_mesh, file_like, cls=NpEncoder)
+                json.dump(job.mesh.dict(), file_like, cls=NpEncoder)
                 file_like.seek(0)
                 yield from file_like
 

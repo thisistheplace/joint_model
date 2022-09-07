@@ -23,10 +23,9 @@ async def get_mesh(model: Model) -> DashVtkModel:
     url = os.environ[RESTAPI_URL]
 
     json_model = validate_and_convert_json(model, Model)
-    json_data = json.loads(json_model.json())
 
     out = io.BytesIO()
-    with requests.post(f"{url}/meshmodel", json=json_data, stream=True) as r:
+    with requests.post(f"{url}/meshmodel", json=json_model.dict(), stream=True) as r:
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:

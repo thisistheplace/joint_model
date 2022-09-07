@@ -1,9 +1,6 @@
-import os
-from pathlib import Path
 import json
 import numpy as np
 import pytest
-import shutil
 import sys
 
 sys.path.append("/src")

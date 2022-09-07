@@ -18,4 +18,4 @@ class TestMeshToDashVtk:
             dash_data = mesh_to_dash_vtk(mesh)
 
         assert isinstance(dash_data, DashVtkMesh)
-        assert dash_data == DashVtkMesh.parse_obj(json.loads(dash_data.json()))
+        assert dash_data == DashVtkMesh.parse_obj(dash_data.dict())

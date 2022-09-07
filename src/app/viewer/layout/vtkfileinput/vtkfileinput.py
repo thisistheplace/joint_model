@@ -180,7 +180,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         Input(ids.filejsonstore(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def get_example_joint(modelname, text_json, file_json):
+    def get_example_joint(modelname, text_json, file_json) -> dict:
         if modelname is None:
             if text_json is not None:
                 return text_json, no_update, no_update
@@ -190,7 +190,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             msg = f"Model {modelname} is not in the available models!"
             return no_update, True, msg
         # create model response
-        return EXAMPLE_MODELS[modelname].json(), no_update, no_update
+        return EXAMPLE_MODELS[modelname].dict(), no_update, no_update
 
     @callback(
         Output(ids.sidepanel(MATCH), "is_open"),
@@ -268,8 +268,6 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         if button_id["subcomponent"] == "downloadmesh":
             json_model = asyncio.run(get_mesh(json_model))
 
-        modeldata = json.loads(json_model.json())
-
         return dcc.send_string(
-            json.dumps(modeldata, indent=4), f"{json_model.name}.json"
+            json.dumps(json_model.dict(), indent=4), f"{json_model.name}.json"
         )
