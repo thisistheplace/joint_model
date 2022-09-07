@@ -2,7 +2,7 @@ from multiprocessing import Process, Queue, Event
 import time
 
 from .job import Job, JobStatus
-from ...converters.model import convert_joint_to_dash_vtk
+from ...converters.model import convert_model_to_dash_vtk
 
 SENTINEL = "STOP"
 DELAY = 5  # ms
@@ -77,7 +77,7 @@ class Worker(Singleton, Process):
             job.status = JobStatus.RUNNING
 
             try:
-                job.mesh = convert_joint_to_dash_vtk(job.data)
+                job.mesh = convert_model_to_dash_vtk(job.data)
                 job.status = JobStatus.COMPLETE
             except Exception as e:
                 job.error = str(e)

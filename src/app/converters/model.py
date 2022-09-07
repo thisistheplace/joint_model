@@ -4,6 +4,10 @@ from ..interfaces import *
 from ..modelling.mesher.mesh import mesh_model
 
 
-def convert_joint_to_dash_vtk(joint: Joint) -> dict[str, list]:
-    with mesh_model(joint) as mesh:
-        return mesh_to_dash_vtk(mesh)
+def convert_model_to_dash_vtk(model: Model) -> DashVtkModel:
+    with mesh_model(model) as mesh:
+        mesh = mesh_to_dash_vtk(mesh)
+        return DashVtkModel(
+            name = model.name,
+            mesh = mesh
+        )

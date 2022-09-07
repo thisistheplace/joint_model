@@ -17,9 +17,6 @@ def rotatexy(dimTags: list[tuple[int, int]], origin: Point3D, vector: Vector3D):
     yangle = angle_between([0, 0, 1], [vector.x, 0, vector.z])
     FACTORY.rotate(dimTags, origin.x, origin.y, origin.z, 0, 1, 0, yangle)
     FACTORY.synchronize()
-    print(vector)
-    print(xangle, yangle)
-
 
 def add_tube(tube: Tubular) -> tuple[int, int]:
     origin = tube.axis.point
@@ -39,7 +36,6 @@ def add_tube(tube: Tubular) -> tuple[int, int]:
     # to the wire
     radius = tube.diameter / 2.0
     ring = FACTORY.addCircle(origin.x, origin.y, origin.z, radius)
-    print(ring)
     rotatexy([(1, ring)], origin, vector)
     pipe = FACTORY.addPipe([(1, ring)], wire)
 
