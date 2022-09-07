@@ -1,4 +1,4 @@
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process, Queue, Event, RLock
 import time
 
 from .job import Job, JobStatus
@@ -30,7 +30,8 @@ class Worker(Singleton, Process):
         super(Worker, self).__init__()
         self._inqueue = Queue()
         self._outqueue = Queue()
-        self.stop_event = Event()
+        self._stop_event = Event()
+        self._lock = RLock()
 
     @property
     def inqueue(self):
@@ -41,9 +42,9 @@ class Worker(Singleton, Process):
         return self._outqueue
 
     def stop(self):
-        with self.lock:
-            if not self.stop_event.is_set():
-                self.stop_event.set()
+        with self._lock:
+            if not self._stop_event.is_set():
+                self._stop_event.set()
             # empty inqueue
             while self.inqueue.qsize() > 0:
                 self.inqueue.get_nowait()
@@ -53,7 +54,7 @@ class Worker(Singleton, Process):
 
     def run(self):
         while True:
-            if self.stop_event.is_set():
+            if self._stop_event.is_set():
                 break
 
             # pull an item from the queue
@@ -62,8 +63,8 @@ class Worker(Singleton, Process):
             # check if stop is requested
             if job == SENTINEL:
                 # stop event to notify other threads
-                if not self.stop_event.is_set():
-                    self.stop_event.set()
+                if not self._stop_event.is_set():
+                    self._stop_event.set()
                 break
 
             elif not isinstance(job, Job):
