@@ -1,6 +1,7 @@
 from enum import Enum
-from pathlib import Path
 import uuid
+
+from ...interfaces import DashVtkModel, Model
 
 
 class JobStatus(Enum):
@@ -11,9 +12,9 @@ class JobStatus(Enum):
 
 
 class Job:
-    def __init__(self, data):
+    def __init__(self, model: Model):
         self._id = str(uuid.uuid4())
-        self._data = data
+        self._data = model
         self._mesh = None
         self._error = None
         self._status = JobStatus.PENDING
@@ -23,7 +24,7 @@ class Job:
         return self._id
 
     @property
-    def data(self):
+    def data(self) -> Model:
         return self._data
 
     @property
@@ -36,11 +37,11 @@ class Job:
         self._error = value
 
     @property
-    def mesh(self) -> dict[str, list]:
+    def mesh(self) -> DashVtkModel:
         return self._mesh
 
     @mesh.setter
-    def mesh(self, value: dict[str, list]):
+    def mesh(self, value: DashVtkModel):
         self._mesh = value
 
     @property

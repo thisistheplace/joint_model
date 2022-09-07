@@ -2,19 +2,20 @@
 from dash import Dash
 import dash_bootstrap_components as dbc
 
-from ..interfaces.examples.joints import EXAMPLE_JOINTS
+from ..interfaces.examples.joints import EXAMPLE_MODELS
 from .layout import VtkFileInputAIO
 
 # Dash setup
 app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.FLATLY, dbc.icons.FONT_AWESOME],
-    title="JointMesh"
+    title="JointMesh",
 )
 server = app.server
 
-app.layout = VtkFileInputAIO(options=list(EXAMPLE_JOINTS.keys()))
+app.layout = VtkFileInputAIO(options=list(EXAMPLE_MODELS.keys()))
+
 
 @app.server.route("/ping")
 def ping():
-  return "{status: ok}"
+    return "{status: ok}"

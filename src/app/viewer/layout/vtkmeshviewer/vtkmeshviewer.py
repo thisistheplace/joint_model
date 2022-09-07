@@ -11,7 +11,7 @@ from ...gmsh_to_dash import vtk_to_dash
 from ...requests.exceptions import MeshApiHttpError
 from ...requests.requests import get_mesh
 from ....interfaces import Model
-from ....interfaces.validation import validate_json
+from ....interfaces.validation import validate_and_convert_json
 
 
 class VtkMeshViewerAIO(html.Div):
@@ -97,7 +97,7 @@ class VtkMeshViewerAIO(html.Div):
         if json_str is None:
             return no_update
         try:
-            json_model = validate_json(json_str, Model)
+            json_model = validate_and_convert_json(json_str, Model)
             json_mesh = asyncio.run(get_mesh(json_model))
             return (
                 dash_vtk.GeometryRepresentation(

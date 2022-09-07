@@ -25,10 +25,10 @@ def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
 
 
 @contextmanager
-def mesh_model(joint: Joint) -> gmsh.model.mesh:
+def mesh_model(model: Model) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
-        meshed_tubes = mesh_joint(joint)
+        meshed_tubes = mesh_joint(model.joint)
 
         FACTORY.synchronize()
 

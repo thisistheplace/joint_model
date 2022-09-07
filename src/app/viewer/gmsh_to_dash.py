@@ -1,11 +1,13 @@
 import dash_vtk
 
+from ..interfaces import DashVtkModel
 
-def vtk_to_dash(data: dict[str, list]) -> dash_vtk.PolyData:
+
+def vtk_to_dash(model: DashVtkModel) -> dash_vtk.PolyData:
     return dash_vtk.PolyData(
-        points=data["points"],
-        lines=data["lines"],
-        polys=data["polys"],
+        points=model.mesh.points,
+        lines=model.mesh.lines,
+        polys=model.mesh.polys,
         children=[
             dash_vtk.PointData(
                 [

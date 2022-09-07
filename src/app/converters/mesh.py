@@ -1,7 +1,7 @@
 from collections import defaultdict
 import gmsh
 
-from ..modelling.mesher.mesh import mesh_joint
+from ..interfaces import DashVtkMesh
 
 
 def process_mesh(mesh: gmsh.model.mesh):
@@ -16,8 +16,8 @@ def process_mesh(mesh: gmsh.model.mesh):
     # to the canonical orientation of the edges and faces for a given element type.
     # Edge and face tags can then be retrieved by providing their nodes:
     # edgeTags, edgeOrientations = mesh.getEdges(edgeNodes)
-    faceTags, faceOrientations = mesh.getFaces(3, faceNodes)
-    elementTags, elementNodeTags = mesh.getElementsByType(elementType)
+    faceTags, _ = mesh.getFaces(3, faceNodes)
+    elementTags, _ = mesh.getElementsByType(elementType)
 
     faces2Elements = defaultdict(list)
 
@@ -27,10 +27,10 @@ def process_mesh(mesh: gmsh.model.mesh):
     return faces2Elements
 
 
-def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
+def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
     face2el = process_mesh(mesh)
 
-    outerfaces = [k for k, v in face2el.items()]
+    outerfaces = [k for k in face2el.keys()]
 
     nid2pointidx = {}  # key: node number, value: index in points
     points = []
@@ -38,7 +38,7 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
     polys = []
 
     for element in outerfaces:
-        eltype, node_ids = mesh.getElement(element)
+        _, node_ids = mesh.getElement(element)
         # if eltype != 2 or len(node_ids) != 3:
         #     continue
         line = [len(node_ids)]
@@ -54,4 +54,4 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh):
         lines += line
         polys += poly
 
-    return {"points": points, "lines": lines, "polys": polys}
+    return DashVtkMesh(points=points, lines=lines, polys=polys)

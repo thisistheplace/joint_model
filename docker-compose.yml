@@ -14,7 +14,7 @@ services:
       - "8000"
     ports:
       - "8000:8000"
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers 1
+    command: uvicorn app.app_rest:app --host 0.0.0.0 --port 8000 --proxy-headers --workers 1
 
   viewer:
     depends_on:
@@ -31,4 +31,4 @@ services:
       - "8000"
     ports:
       - "8050:8000"
-    command: gunicorn -w 1 -b :8000 viewer:server
+    command: gunicorn -w 1 -b :8000 app.app_viewer:server

@@ -11,6 +11,7 @@ from dash import (
 )
 import dash_bootstrap_components as dbc
 
+import asyncio
 import json
 import uuid
 
@@ -18,9 +19,10 @@ from .fileutils import parse_contents
 from ..ids import Ids
 from ..toast import make_toast
 from ..vtkmeshviewer import VtkMeshViewerAIO
+from ...requests.requests import get_mesh
 from ....interfaces import Model
-from ....interfaces.examples.joints import EXAMPLE_JOINTS
-from ....interfaces.validation import validate_json
+from ....interfaces.examples.joints import EXAMPLE_MODELS
+from ....interfaces.validation import validate_and_convert_json
 
 
 class VtkFileInputAIO(VtkMeshViewerAIO):
@@ -88,16 +90,22 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                     dbc.AccordionItem(
                                         [
                                             dbc.Button(
-                                                "Download",
-                                                id=self.ids.downloadbutton(aio_id),
+                                                "Download input",
+                                                id=self.ids.downloadinput(aio_id),
+                                                className="mb-3",
+                                                n_clicks=0,
+                                            ),
+                                            dbc.Button(
+                                                "Download mesh",
+                                                id=self.ids.downloadmesh(aio_id),
                                                 className="mb-3",
                                                 n_clicks=0,
                                             ),
                                             dcc.Download(
-                                                id=self.ids.download(aio_id),
+                                                id=self.ids.downloader(aio_id),
                                             ),
                                         ],
-                                        title="Download example model",
+                                        title="Download model / mesh",
                                     ),
                                     dbc.AccordionItem(
                                         dcc.Upload(
@@ -172,18 +180,17 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         Input(ids.filejsonstore(MATCH), "data"),
         prevent_initial_call=True,
     )
-    def get_example_joint(modelname, text_json, file_json):
+    def get_example_joint(modelname, text_json, file_json) -> dict:
         if modelname is None:
             if text_json is not None:
                 return text_json, no_update, no_update
             if file_json is not None:
                 return file_json, no_update, no_update
-        if modelname not in EXAMPLE_JOINTS:
+        if modelname not in EXAMPLE_MODELS:
             msg = f"Model {modelname} is not in the available models!"
             return no_update, True, msg
         # create model response
-        model = Model(name=modelname, joint=EXAMPLE_JOINTS[modelname])
-        return model.json(), no_update, no_update
+        return EXAMPLE_MODELS[modelname].dict(), no_update, no_update
 
     @callback(
         Output(ids.sidepanel(MATCH), "is_open"),
@@ -219,7 +226,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             return no_update, True, "Could not load an empty string"
         else:
             try:
-                model_data = validate_json(json_str, Model)
+                model_data = validate_and_convert_json(json_str, Model)
                 return model_data, no_update, no_update
             except Exception as e:
                 return no_update, True, str(e)
@@ -240,17 +247,27 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
             return no_update, True, str(e)
 
     @callback(
-    Output(ids.download(MATCH), "data"),
-    Input(ids.downloadbutton(MATCH), "n_clicks"),
-    State(ids.dropdown(MATCH), "value"),
-    prevent_initial_call=True,
+        Output(ids.downloader(MATCH), "data"),
+        Input(ids.downloadinput(MATCH), "n_clicks"),
+        Input(ids.downloadmesh(MATCH), "n_clicks"),
+        State(ids.jsonstore(MATCH), "value"),
+        prevent_initial_call=True,
     )
-    def func(n_clicks, modelname):
-        if modelname not in EXAMPLE_JOINTS.keys():
-            modelname = list(EXAMPLE_JOINTS.keys())[-1]
-        modelobj = Model(
-            name = modelname,
-            joint = EXAMPLE_JOINTS[modelname]
+    def func(input, mesh, modeldata):
+        button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+        if button_id == "":
+            return no_update
+        button_id = json.loads(button_id)
+
+        # Generate model
+        if modeldata is None:
+            modeldata = list(EXAMPLE_MODELS.values())[0]
+        json_model = validate_and_convert_json(modeldata, Model)
+
+        # generate mesh if required
+        if button_id["subcomponent"] == "downloadmesh":
+            json_model = asyncio.run(get_mesh(json_model))
+
+        return dcc.send_string(
+            json.dumps(json_model.dict(), indent=4), f"{json_model.name}.json"
         )
-        modeldata = json.loads(modelobj.json())
-        return dcc.send_string(json.dumps(modeldata, indent=4), f"{modelname}.json")

@@ -8,14 +8,19 @@ class Ids:
         "aio_id": aio_id,
     }
 
-    downloadbutton = lambda aio_id: {
+    downloadinput = lambda aio_id: {
         "component": "VtkFileInputAIO",
-        "subcomponent": "downloadbutton",
+        "subcomponent": "downloadinput",
         "aio_id": aio_id,
     }
-    download = lambda aio_id: {
+    downloadmesh = lambda aio_id: {
         "component": "VtkFileInputAIO",
-        "subcomponent": "download",
+        "subcomponent": "downloadmesh",
+        "aio_id": aio_id,
+    }
+    downloader = lambda aio_id: {
+        "component": "VtkFileInputAIO",
+        "subcomponent": "downloader",
         "aio_id": aio_id,
     }
 
