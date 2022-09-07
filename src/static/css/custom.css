@@ -1,0 +1,46 @@
+@media screen and (max-width : 350px)
+{
+  html
+  {
+    font-size: 3vw
+  }
+}
+
+body {
+    padding-top: 5em;
+    padding-right: 1em;
+    padding-left: 1em;
+}
+
+.fullwidth {
+    width: 100vw;
+}
+
+h1 {
+    padding-bottom: 40px;
+}
+
+.padbutton {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.credits {
+    display: block;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    padding: 1em;
+}
+
+.padcard {
+    padding-top: 10px;
+}
+
+.logos {
+    display: block;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    padding: 1em;
+}
