@@ -1,5 +1,5 @@
 echo building docker container
-docker build -t jointbuilder:latest .
+docker build -f Dockerfile-rest -t jointrest:latest .
 
 echo running docker pytest
-docker run -it jointbuilder pytest -svv
+docker run -it jointrest pytest -svv

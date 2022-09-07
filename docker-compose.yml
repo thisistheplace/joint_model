@@ -2,12 +2,14 @@ version: '3.7'
 
 services:
   fastapi:
-    container_name: jointrestapi
+    container_name: jointrest
     environment:
       - RESTAPI_URL=http://127.0.0.1:8000
       - VIEWER_URL=http://127.0.0.1:8050
     restart: always
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-rest
     expose:
       - "8000"
     ports:
@@ -15,12 +17,16 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers --workers 1
 
   viewer:
+    depends_on:
+      - fastapi
     container_name: jointviewer
     environment:
       - RESTAPI_URL=http://host.docker.internal:8000
       - VIEWER_URL=http://host.docker.internal:8050
     restart: always
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-viewer
     expose:
       - "8000"
     ports:

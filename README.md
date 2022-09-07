@@ -32,8 +32,8 @@ Edit the [docker-compose.yml](docker-compose.yml) file directly to change the po
 ### Cloud Run
 Dockerfiles are provided for each component which can be used to run the services separately using
 a cloud service provider:
-- Build the REST API using [Dockerfile-joint-rest](Dockerfile-joint-rest)
-- Build the Viewer using [Dockerfile-joint-viewer](Dockerfile-joint-viewer)
+- Build the REST API using [Dockerfile-rest](Dockerfile-rest)
+- Build the Viewer using [Dockerfile-viewer](Dockerfile-viewer)
 
 > Note: set the URLs of the viewer in the containers using environment variables `RESTAPI_URL` and `VIEWER_URL`
 
