@@ -8,6 +8,17 @@ class Ids:
         "aio_id": aio_id,
     }
 
+    downloadbutton = lambda aio_id: {
+        "component": "VtkFileInputAIO",
+        "subcomponent": "downloadbutton",
+        "aio_id": aio_id,
+    }
+    download = lambda aio_id: {
+        "component": "VtkFileInputAIO",
+        "subcomponent": "download",
+        "aio_id": aio_id,
+    }
+
     textinput = lambda aio_id: {
         "component": "VtkFileInputAIO",
         "subcomponent": "textinput",
