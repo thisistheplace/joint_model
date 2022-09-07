@@ -12,7 +12,7 @@ class WorkerException(Exception):
     pass
 
 
-class Singleton(object):
+class SingletonProcess(Process):
     def __new__(cls, *args, **kwds):
         it = cls.__dict__.get("__it__")
         if it is not None:
@@ -22,10 +22,10 @@ class Singleton(object):
         return it
 
     def init(self, *args, **kwds):
-        pass
+        super(SingletonProcess, self).__init__()
 
 
-class Worker(Singleton, Process):
+class Worker(SingletonProcess):
     def __init__(self):
         super(Worker, self).__init__()
         self._inqueue = Queue()
@@ -41,6 +41,11 @@ class Worker(Singleton, Process):
     def outqueue(self):
         return self._outqueue
 
+    def start(self, *args, **kwargs):
+        if self.is_alive():
+            raise WorkerException("Worker is currently running, please call self.stop() before starting")
+        super(Worker, self).start(*args, **kwargs)
+
     def stop(self):
         with self._lock:
             if not self._stop_event.is_set():
@@ -51,6 +56,10 @@ class Worker(Singleton, Process):
             self.inqueue.put(SENTINEL)
             if self.is_alive():
                 self.join()
+            while self.is_alive():
+                time.sleep(DELAY / 1000)
+            self.close()
+            del self
 
     def run(self):
         while True:
