@@ -10,7 +10,7 @@ from app.interfaces.numpy.model import NpTubular
 
 from .cylinder import add_cylinder
 from .specs import MeshSpecs
-from .vectors import unit_vector
+from ..geometry.vectors import unit_vector
 
 from ...interfaces.geometry import *
 from ...interfaces.mapper import map_to_np
@@ -28,9 +28,9 @@ def line_points(
     rtol: float = 1.0e-6,
     loop: bool = True
 ) -> deque[np.ndarray]:
-    """Creates intermediary points between points at interval frequency or size and adds line.
+    """Creates intermediary points between points at interval frequency or size.
 
-    The order of the points is important and is maintained in the generated line.
+    The order of the points is important and is maintained in the generated list of points.
 
     Args:
         points_in: list of numpy arrays of shape (3,)
@@ -76,18 +76,18 @@ def line_points(
     return points_out
 
 
-def flatten_tube(tube: Tubular, specs: MeshSpecs):
+def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int]:
     """Make a flat mesh out of a tubular
 
     Initially create it in the x, y plane where 1 is at
     the tube.axis.point.
 
-        4---------------3
+        5-------4-------3
         |               |
         |               |
         |               |
         |               |
-        5-------1-------2
+        6-------1-------2
     y
     |
     |
@@ -107,35 +107,28 @@ def flatten_tube(tube: Tubular, specs: MeshSpecs):
     pt3[1] += length
 
     pt4 = deepcopy(pt1)
-    pt4[0] -= nptube.diameter / 2.0
     pt4[1] += length
 
     pt5 = deepcopy(pt1)
     pt5[0] -= nptube.diameter / 2.0
+    pt5[1] += length
 
-    origin = tube.axis.point
-    vector = tube.axis.vector
-    start = FACTORY.addPoint(
-        origin.x,
-        origin.y,
-        origin.z,
-    )
-    end = FACTORY.addPoint(
-        origin.x + vector.x, origin.y + vector.y, origin.z + vector.z
-    )
-    extrusion = FACTORY.addSpline([start, end])
-    wire = FACTORY.addWire([extrusion])
+    pt6 = deepcopy(pt1)
+    pt6[0] -= nptube.diameter / 2.0
 
-    # Create disk in x, y plane then transform it to be perpendicular
-    # to the wire
-    radius = tube.diameter / 2.0
-    ring = FACTORY.addCircle(origin.x, origin.y, origin.z, radius)
-    rotatexy([(1, ring)], origin, vector)
-    pipe = FACTORY.addPipe([(1, ring)], wire)
+    key_points = [pt1, pt2, pt3, pt4, pt5, pt6]
 
-    # We delete the source surface, and increase the number of sub-edges for a
+    line_of_points = line_points(key_points, interval=specs.interval, size=specs.size)
+    pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
+    line = FACTORY.addSpline(pnt_tags)
+    curve = FACTORY.addCurveLoop(line)
+    surface = FACTORY.addSurfaceFilling(curve)
+
+    # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
-    FACTORY.remove([(1, ring)])
-    FACTORY.remove([(1, extrusion)])
-    gmsh.option.setNumber("Geometry.NumSubEdges", 20)
-    return pipe[0]
+    FACTORY.remove([1, line])
+    FACTORY.remove([(1, curve)])
+    # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
+    return surface
+
+# def punch_holes()

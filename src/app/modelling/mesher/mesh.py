@@ -3,16 +3,22 @@ import gmsh
 from itertools import combinations
 
 from .cylinder import add_cylinder
+from .flat import add_flat_tube
 
 from ...interfaces.geometry import *
 from ...interfaces.model import *
+from ...modelling.mesher.specs import MeshSpecs
 
 FACTORY = gmsh.model.occ
 
 
 def mesh_tubular(tube: Tubular) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
-    return add_cylinder(tube)
+    specs = MeshSpecs(
+        size=0.1
+    )
+    # return add_cylinder(tube)
+    return add_flat_tube(tube, )
 
 
 def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:

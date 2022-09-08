@@ -55,3 +55,7 @@ class TestLinePoints:
     def test_size_and_interval_error(self, square):
         with pytest.raises(ValueError):
             line_points(square, interval=10, size=1)
+
+    def test_too_few_points(self, square):
+        with pytest.raises(ValueError):
+            line_points([square[0]], interval=10)

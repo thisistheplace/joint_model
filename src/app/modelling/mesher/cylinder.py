@@ -2,7 +2,7 @@ import gmsh
 
 from app.interfaces import Tubular
 
-from .vectors import angle_between_vectors
+from ..geometry.vectors import angle_between_vectors
 from ...interfaces.geometry import *
 
 FACTORY = gmsh.model.occ
