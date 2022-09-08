@@ -9,16 +9,13 @@ from app.interfaces.geometry import Point3D
 from app.interfaces.validation import validate_and_convert_json
 from app.interfaces.examples.joints import EXAMPLE_MODELS
 
+
 @pytest.fixture
 def point():
-    return Point3D(
-        x = 1.0,
-        y = 2.0,
-        z = 3.0
-    )
+    return Point3D(x=1.0, y=2.0, z=3.0)
+
 
 class TestValidateAndConvertJson:
-
     def test_valid_conversion(self, point):
         assert point == validate_and_convert_json(point.dict(), Point3D)
 
@@ -30,7 +27,9 @@ class TestValidateAndConvertJson:
         assert point == validate_and_convert_json(point, Point3D)
 
     def test_validates_model(self):
-        assert EXAMPLE_MODELS["TJoint"] == validate_and_convert_json(EXAMPLE_MODELS["TJoint"], Model)
+        assert EXAMPLE_MODELS["TJoint"] == validate_and_convert_json(
+            EXAMPLE_MODELS["TJoint"], Model
+        )
 
     def test_invalid_conversion(self):
         with pytest.raises(ValidationError):

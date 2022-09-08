@@ -43,7 +43,9 @@ class Worker(SingletonProcess):
 
     def start(self, *args, **kwargs):
         if self.is_alive():
-            raise WorkerException("Worker is currently running, please call self.stop() before starting")
+            raise WorkerException(
+                "Worker is currently running, please call self.stop() before starting"
+            )
         super(Worker, self).start(*args, **kwargs)
 
     def stop(self):

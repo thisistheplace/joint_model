@@ -1,5 +1,4 @@
 import gmsh
-import math
 
 from app.interfaces import Tubular
 

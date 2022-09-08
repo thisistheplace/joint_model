@@ -1,17 +1,19 @@
-from pydantic import BaseModel
-
+from .base import NpBaseModel
 from .geometry import NpAxis3D, NpPoint3D
 
-class NpTubular(BaseModel):
+
+class NpTubular(NpBaseModel):
     name: str = ...
     axis: NpAxis3D = ...
     diameter: float = ...
 
-class NpJoint(BaseModel):
+
+class NpJoint(NpBaseModel):
     name: str = ...
     tubes: list[NpTubular] = ...
     origin: NpPoint3D | None = None
 
-class NpModel(BaseModel):
+
+class NpModel(NpBaseModel):
     name: str = ...
     joint: NpJoint = ...

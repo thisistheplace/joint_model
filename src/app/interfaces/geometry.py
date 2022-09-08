@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class Point3D(BaseModel):
     x: float = ...
     y: float = ...

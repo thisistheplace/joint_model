@@ -1,3 +1,4 @@
+from collections import deque
 from contextlib import contextmanager
 from copy import deepcopy
 import gmsh
@@ -9,7 +10,7 @@ from app.interfaces.numpy.model import NpTubular
 
 from .cylinder import add_cylinder
 from .specs import MeshSpecs
-from .vectors import angle_between_vectors, unit_vector
+from .vectors import unit_vector
 
 from ...interfaces.geometry import *
 from ...interfaces.mapper import map_to_np
@@ -19,38 +20,60 @@ FACTORY = gmsh.model.occ
 
 # scipolate.Rbf()
 
-def add_line(points: list[np.ndarray], interval: int | None = None, size: float | None = None):
+
+def line_points(
+    points_in: list[np.ndarray],
+    interval: int | None = None,
+    size: float | None = None,
+    rtol: float = 1.0e-6,
+    loop: bool = True
+) -> deque[np.ndarray]:
     """Creates intermediary points between points at interval frequency or size and adds line.
-    
+
     The order of the points is important and is maintained in the generated line.
 
     Args:
-        points: list of numpy arrays of shape (3,)
+        points_in: list of numpy arrays of shape (3,)
         interval: number of intervals between adjacent points to create intermediary points
         size: size of distances between intermediary points
+        rtol: relative tolerance used to determine if first and last points are the same
+        loop: if True (default) then repeats the first point at the end to create a full loop
 
     Returns:
-        list of np.ndarray objects including all points (points and intermediary)
+        deque of np.ndarray objects including all points (points and intermediary)
     """
     if interval is not None and size is not None:
-        raise ValueError("Cannot provide values for intervals and size to add_line method")
-    if len(points) < 2:
+        raise ValueError(
+            "Cannot provide values for intervals and size to add_line method"
+        )
+    if len(points_in) < 2:
         raise ValueError("Cannot create line between less than 2 points")
-    full_circle = [points] + [points[0]]
-    all_points = []
-    for idx, point1 in enumerate(points):
-        all_points.append(point1)
-        point2 = full_circle[idx + 1]
+
+    # check whether first and last point are the same
+    if not np.isclose(points_in[0], points_in[-1], rtol=rtol).all() and loop:
+        points_in = points_in + [points_in[0]]
+
+    points_out = deque()
+    for idx in range(len(points_in) - 1):
+        point1 = points_in[idx]
+        points_out.append(point1)
+        point2 = points_in[idx + 1]
         vector = point2 - point1
         length = np.linalg.norm(vector)
         unit = unit_vector(vector)
         if interval is not None:
             size = length / abs(interval)
-        distance = 0
-        sub_length = size * length
-        distance += sub_length
+        distance = 0.0
+        distance += size
         while distance < length:
-            points
+            midpoint = point1 + distance * unit
+            points_out.append(midpoint)
+            distance += size
+
+    # Add end of loop
+    if loop:
+        points_out.append(point2)
+    return points_out
 
 
 def flatten_tube(tube: Tubular, specs: MeshSpecs):
@@ -63,7 +86,7 @@ def flatten_tube(tube: Tubular, specs: MeshSpecs):
         |               |
         |               |
         |               |
-        |               | 
+        |               |
         5-------1-------2
     y
     |
@@ -89,8 +112,6 @@ def flatten_tube(tube: Tubular, specs: MeshSpecs):
 
     pt5 = deepcopy(pt1)
     pt5[0] -= nptube.diameter / 2.0
-
-
 
     origin = tube.axis.point
     vector = tube.axis.vector

@@ -1,12 +1,13 @@
+from typing import Any
 import numpy as np
 
 
-def unit_vector(vector):
+def unit_vector(vector: list[Any]):
     """Returns the unit vector of the vector."""
     return vector / np.linalg.norm(vector)
 
 
-def angle_between(v1, v2):
+def angle_between_vectors(v1, v2):
     """Returns the angle in radians between vectors 'v1' and 'v2'::
 
     >>> angle_between((1, 0, 0), (0, 1, 0))

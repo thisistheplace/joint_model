@@ -22,6 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 worker = Worker()
 worker.start()
 
+
 @app.on_event("shutdown")
 def shutdown_event():
     worker.stop()
