@@ -42,7 +42,7 @@ def line_points(
     Returns:
         deque of np.ndarray objects including all points (points and intermediary)
     """
-    if interval is not None and size is not None:
+    if (interval is not None and size is not None) or (interval is None and size is None):
         raise ValueError(
             "Cannot provide values for intervals and size to add_line method"
         )

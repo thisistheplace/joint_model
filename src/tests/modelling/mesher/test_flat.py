@@ -20,17 +20,38 @@ def square():
 
 class TestLinePoints:
     @staticmethod
-    def validate_points(points: deque[np.ndarray]):
+    def check_loop(points: deque[np.ndarray]):
         points = list(points)
         assert len(points) == 41
         assert np.array_equal(points[0], points[-1])
+
+    @staticmethod
+    def check_separation(points: deque[np.ndarray]):
+        points = list(points)
         previous = points[0]
         for pnt in points[1:]:
             assert np.linalg.norm(pnt - previous) == 1.0
             previous = pnt
 
     def test_mesh_square_interval(self, square):
-        self.validate_points(line_points(square, interval=10))
+        pnts = line_points(square, interval=10)
+        self.check_loop(pnts)
+        self.check_separation(pnts)
 
     def test_mesh_square_size(self, square):
-        self.validate_points(line_points(square, size=1))
+        pnts = line_points(square, size=1)
+        self.check_loop(pnts)
+        self.check_separation(pnts)
+
+    def test_mesh_square_no_loop(self, square):
+        pnts = line_points(square, size=1, loop=False)
+        assert not np.array_equal(pnts[0], pnts[-1])
+        self.check_separation(pnts)
+
+    def test_no_size_or_interval_error(self, square):
+        with pytest.raises(ValueError):
+            line_points(square)
+
+    def test_size_and_interval_error(self, square):
+        with pytest.raises(ValueError):
+            line_points(square, interval=10, size=1)
