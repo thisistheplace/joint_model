@@ -3,4 +3,5 @@ from pydantic import BaseModel
 
 
 class MeshSpecs(BaseModel):
-    size = float
+    size: float | None = None
+    interval: float | None = None

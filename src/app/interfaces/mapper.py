@@ -3,7 +3,7 @@ import numpy as np
 
 from . import *
 
-def interface_to_np(inter: Any):
+def map_to_np(inter: Any):
     match type(inter):
         case type(Point3D):
             return NpPoint3D(

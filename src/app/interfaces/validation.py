@@ -10,6 +10,9 @@ def validate_and_convert_json(input: Any, check_type: BaseModel) -> Any:
         input: input to validate
         check_type: type to validate against
 
+    Returns:
+        check_type object instantiated with input
+
     Raise:
         pydantic.ValidationError: if input is invalid
         TypeError: if check_type does not inherit from BaseModel
