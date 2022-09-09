@@ -120,6 +120,7 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     pt6[0] -= nptube.diameter / 2.0
 
     # closed loop
+    # NOTE: point order may need to be clockwise!
     key_points = [pt1, pt2, pt3, pt4, pt5, pt6, pt1]
 
     line_of_points = line_points(key_points, interval=specs.interval, size=specs.size)
