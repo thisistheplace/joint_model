@@ -1,6 +1,5 @@
 import pytest
 import sys
-from unittest import mock
 
 sys.path.append("/src")
 

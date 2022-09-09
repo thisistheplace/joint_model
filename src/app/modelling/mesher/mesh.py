@@ -7,10 +7,11 @@ from .flat import add_flat_tube
 
 from ...interfaces.geometry import *
 from ...interfaces.model import *
-from ...modelling.mesher.specs import MeshSpecs
+from ...interfaces.mesh import *
 
 FACTORY = gmsh.model.occ
 
+# TODO: need to handle memory exceptions!!! Or try and predict memory usage!
 
 def mesh_tubular(tube: Tubular) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
@@ -23,6 +24,7 @@ def mesh_tubular(tube: Tubular) -> tuple[int, int]:
 
 def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
     joint_mesh = {tube.name: mesh_tubular(tube) for tube in joint.tubes}
+    print(joint_mesh)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])

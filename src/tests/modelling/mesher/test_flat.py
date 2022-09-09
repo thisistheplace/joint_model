@@ -1,11 +1,15 @@
 from collections import deque
+from types import NoneType
+import gmsh
 import numpy as np
 import pytest
 import sys
 
 sys.path.append("/src")
 
-from app.modelling.mesher.flat import line_points
+from app.modelling.mesher.flat import line_points, add_flat_tube
+from app.interfaces.examples.joints import EXAMPLE_MODELS
+from app.interfaces.mesh import MeshSpecs
 
 
 @pytest.fixture
@@ -16,6 +20,24 @@ def square():
     pnt4 = [0, 10, 0]
     pnts = [pnt1, pnt2, pnt3, pnt4]
     return [np.array(pnt) for pnt in pnts]
+
+@pytest.fixture
+def tube():
+    return EXAMPLE_MODELS["TJoint"].joint.tubes[0]
+
+@pytest.fixture
+def mesh_specs():
+    return MeshSpecs(
+        size=0.1
+    )
+
+@pytest.fixture
+def mesh_context() -> NoneType:
+    try:
+        gmsh.initialize()
+        yield
+    finally:
+        gmsh.finalize()
 
 
 class TestLinePoints:
@@ -59,3 +81,10 @@ class TestLinePoints:
     def test_too_few_points(self, square):
         with pytest.raises(ValueError):
             line_points([square[0]], interval=10)
+
+
+@pytest.mark.usefixtures("mesh_context")
+class TestAddFlatTube:
+
+    def test_add_flat_tube(self, tube, mesh_specs):
+        add_flat_tube(tube, mesh_specs)
