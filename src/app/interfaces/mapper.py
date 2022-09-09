@@ -1,3 +1,4 @@
+from types import NoneType
 from typing import Any
 import numpy as np
 
@@ -30,11 +31,11 @@ def _map_joint(input: Joint):
     )
 
 def _map_model(input: Model):
-    return NpModel(name=input.name, joint=map_to_np(input.model))
+    return NpModel(name=input.name, joint=map_to_np(input.joint))
 
 def _not_found(input: Any):
     raise TypeError(
-        f"Could not match inputface type {type(input)} and numpy types"
+        f"Could not match interface type {type(input)} and numpy types"
     )
 
 def map_to_np(input: Any) -> Any:
@@ -44,6 +45,7 @@ def map_to_np(input: Any) -> Any:
         Axis3D: _map_axis,
         Tubular: _map_tubular,
         Joint: _map_joint,
-        Model: _map_model
+        Model: _map_model,
+        NoneType: lambda input: None
     }
     return mappers.get(type(input), _not_found)(input)

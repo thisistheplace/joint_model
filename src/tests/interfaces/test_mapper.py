@@ -18,6 +18,8 @@ def model() -> Model:
 class TestMapper:
     
     def _get_type(self, model: BaseModel, target: Any) -> Any:
+        if type(model) is target:
+            return model
         for attr_name in model.dict().keys():
             attr = getattr(model, attr_name)
             if isinstance(type(attr), ModelMetaclass):
