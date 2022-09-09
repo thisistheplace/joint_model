@@ -47,17 +47,14 @@ class TestMapper:
         found = self.find_type(model, Axis3D)
         assert isinstance(map_to_np(found), NpAxis3D)
 
-    # def test_map_tubular(self, model):
-    #     found = self.find_type(model, Tubular)
-    #     print(found)
-    #     assert isinstance(map_to_np(found), NpTubular)
+    def test_map_tubular(self, model):
+        found = self.find_type(model, Tubular)
+        assert isinstance(map_to_np(found), NpTubular)
 
-    # def test_map_joint(self, model):
-    #     found = self.find_type(model, Joint)
-    #     print(found)
-    #     assert isinstance(map_to_np(found), NpJoint)
+    def test_map_joint(self, model):
+        found = self.find_type(model, Joint)
+        assert isinstance(map_to_np(found), NpJoint)
 
-    # def test_map_model(self, model):
-    #     found = self.find_type(model, Model)
-    #     print(found)
-    #     assert isinstance(map_to_np(found), NpModel)
+    def test_map_model(self, model):
+        found = self.find_type(model, Model)
+        assert isinstance(map_to_np(found), NpModel)
