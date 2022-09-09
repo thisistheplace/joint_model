@@ -18,7 +18,7 @@ def mesh_tubular(tube: Tubular) -> tuple[int, int]:
         size=0.1
     )
     # return add_cylinder(tube)
-    return add_flat_tube(tube, )
+    return add_flat_tube(tube, specs)
 
 
 def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
