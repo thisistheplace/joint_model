@@ -1,5 +1,5 @@
 # Use the official ubuntu image
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
 # Install gmsh and dependencies
 RUN apt-get update -y
