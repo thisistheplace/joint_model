@@ -22,7 +22,7 @@ from .vectors import unit_vector, angle_between_vectors
 class IntersectionError(Exception):
     pass
 
-def intersections(master: NpTubular, slaves: list[NpTubular]) -> list[NpPoint3D]:
+def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.ndarray]:
     """Calculate 3D points where slaves intersect master
     
     Args:
@@ -30,22 +30,10 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> list[NpPoint3D]
         slaves: list of 3D tubulars which may intersect master
 
     Returns:
-        List of NpPoint3D where slaves intersect with master
+        Dict of np.ndarray where slaves intersect with master (key: NpTubular.name)
 
     Raises:
         IntersectionError if any of the slaves don't intersect the master
-
-    x = intersection points for KJoint
-    plane is tube projection onto flat plane, aligned with tube centreline
-
-        |-----------|
-        |           |
-        |   x   x   |
-        |           |
-        |           |
-        |   x   x   |
-        |           |
-        |-----------|
     """
     # TODO: check that slave point doesn't intersect master axis!!!
     intersects = {} # key: slave.name, value: NpPoint3D of intersection
@@ -149,7 +137,3 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
         vector = vector * 2
 
     return line_type(point, vector)
-
-def flatten_tube():
-    """Flattens """
-    pass
