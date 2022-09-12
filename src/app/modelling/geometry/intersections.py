@@ -57,17 +57,13 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> list[NpPoint3D]
         for intersect2D in intersect2D_array:
             intersect_vector = intersect2D - master.axis.point.array[:2]
             point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
-            print(f"intersect {intersect_vector}")
-            print(f"point vector {point_vector}")
             angle2D = angle_between_vectors(intersect_vector, point_vector)
             if angle2D <= math.pi / 2:
                 break
-        print(f"chosen {intersect2D}")
 
         # Determine intersection of vector with plane
         plane_point = np.array([intersect2D[0], intersect2D[1], slave.axis.point.array[2]])
         intersect3D = plane_intersect(slave, plane_point)
-        
         intersects[slave.name] = np.array(intersect3D, dtype=float)
             
     return intersects
@@ -98,9 +94,11 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
         sympy.Point3D(p2),
         sympy.Point3D(p3)
     )
-    line = get_sympy_line(tube, sympy.Line3D)
+    line = get_sympy_line(point, tube.axis.vector.array, sympy.Line3D)
     try:
-        return plane.intersection(line)
+        # only one intersect for a line and plane
+        intersect = plane.intersection(line)[0]
+        return np.array(intersect, dtype=float)
     except Exception as e:
         # Handle some specific exception here where an intersection is not found
         msg = f"Could not find intersection point of tubular {tube.name} with plane.\nEncountered error:\n{e}"
@@ -128,7 +126,7 @@ def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         center,
         master.diameter / 2.0
     )
-    line = get_sympy_line(slave, sympy.Line2D)
+    line = get_sympy_line(slave.axis.point.array, slave.axis.vector.array, sympy.Line2D)
     try:
         intersect = circle.intersection(line)
         return np.array(intersect, dtype=float)
@@ -137,17 +135,15 @@ def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         msg = f"Could not find intersection point of line {line} with circle {circle}.\nEncountered error:\n{e}"
         raise IntersectionError(msg)
 
-def get_sympy_line(tube: NpTubular, line_type: Any) -> sympy.Line:
+def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sympy.Line:
+    """Generate a 2D or 3D sympy line from a point and vector"""
+    allowed = [sympy.Line2D, sympy.Line3D]
+    if line_type not in allowed:
+        raise TypeError(f"Cannot generate sympy line type {line_type} since it was not oneof {allowed}.")
 
-    if line_type is sympy.Line3D:
-        point = tube.axis.point.array
-        vector = tube.axis.vector.array
-
-    elif line_type is sympy.Line2D:
-        point = tube.axis.point.array[:2]
-        vector = tube.axis.vector.array[:2]
-
-    print(point, vector)
+    if line_type is sympy.Line2D:
+        point = point[:2]
+        vector = vector[:2]
 
     if np.allclose(point, vector):
         vector = vector * 2
