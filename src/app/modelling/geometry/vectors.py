@@ -19,6 +19,7 @@ def angle_between_vectors(v1, v2):
     """
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
+    print(v1_u, v2_u)
     angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
     if np.isnan(angle):
         return 0.0
