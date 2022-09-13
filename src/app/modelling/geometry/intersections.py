@@ -19,12 +19,14 @@ from typing import Any
 from ...interfaces import *
 from .vectors import unit_vector, angle_between_vectors
 
+
 class IntersectionError(Exception):
     pass
 
+
 def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.ndarray]:
     """Calculate 3D points where slaves intersect master
-    
+
     Args:
         master: 3D tubular with slave tubes may intersect
         slaves: list of 3D tubulars which may intersect master
@@ -36,7 +38,7 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
         IntersectionError if any of the slaves don't intersect the master
     """
     # TODO: check that slave point doesn't intersect master axis!!!
-    intersects = {} # key: slave.name, value: NpPoint3D of intersection
+    intersects = {}  # key: slave.name, value: NpPoint3D of intersection
     for slave in slaves:
         # Get 2D point of intersection with the circle
         intersect2D_array = circle_intersect(master, slave)
@@ -50,17 +52,20 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
                 break
 
         # Determine intersection of vector with plane
-        plane_point = np.array([intersect2D[0], intersect2D[1], slave.axis.point.array[2]])
+        plane_point = np.array(
+            [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
+        )
         intersect3D = plane_intersect(slave, plane_point)
         intersects[slave.name] = np.array(intersect3D, dtype=float)
-            
+
     return intersects
+
 
 def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
     """Calculate 3D point where slave intersects plane
 
-    Plane is in X/Z plane.
-    
+    Plane is in X/Y plane.
+
     Args:
         tube: 3D tubular which may intersect master
         point: 3D numpy array defining a point on the plane
@@ -72,15 +77,13 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
         IntersectionError if the slave does not intersect the master
     """
     # create tube projection plane at point of intersect on circle
-    # plane is in X/Z system
+    # plane is in X/Y system
     p2 = deepcopy(point)
     p2[0] += 1.0
     p3 = deepcopy(point)
-    p3[2] += 1.0
+    p3[1] += 1.0
     plane: sympy.Plane = sympy.Plane(
-        sympy.Point3D(point),
-        sympy.Point3D(p2),
-        sympy.Point3D(p3)
+        sympy.Point3D(point), sympy.Point3D(p2), sympy.Point3D(p3)
     )
     line = get_sympy_line(point, tube.axis.vector.array, sympy.Line3D)
     try:
@@ -95,7 +98,7 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
 
 def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Calculate 2D point where slave intersects master tube
-    
+
     Args:
         master: 3D tubular with slave tube which may intersect
         slave: 3D tubular which may intersect master
@@ -107,13 +110,8 @@ def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         IntersectionError if the slave does not intersect the master
     """
     # Find intersection with circle in 2D plane
-    center = sympy.Point2D(
-        master.axis.point.array[:2]
-    )
-    circle = sympy.Circle(
-        center,
-        master.diameter / 2.0
-    )
+    center = sympy.Point2D(master.axis.point.array[:2])
+    circle = sympy.Circle(center, master.diameter / 2.0)
     line = get_sympy_line(slave.axis.point.array, slave.axis.vector.array, sympy.Line2D)
     try:
         intersect = circle.intersection(line)
@@ -123,11 +121,14 @@ def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         msg = f"Could not find intersection point of line {line} with circle {circle}.\nEncountered error:\n{e}"
         raise IntersectionError(msg)
 
+
 def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sympy.Line:
     """Generate a 2D or 3D sympy line from a point and vector"""
     allowed = [sympy.Line2D, sympy.Line3D]
     if line_type not in allowed:
-        raise TypeError(f"Cannot generate sympy line type {line_type} since it was not oneof {allowed}.")
+        raise TypeError(
+            f"Cannot generate sympy line type {line_type} since it was not oneof {allowed}."
+        )
 
     if line_type is sympy.Line2D:
         point = point[:2]

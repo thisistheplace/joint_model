@@ -4,17 +4,18 @@ import numpy as np
 
 from . import *
 
+
 def _map_point(input: Point3D):
     return NpPoint3D(array=np.array([input.x, input.y, input.z]))
+
 
 def _map_vector(input: Vector3D):
     return NpVector3D(array=np.array([input.x, input.y, input.z]))
 
+
 def _map_axis(input: Axis3D):
-    return NpAxis3D(
-        point=map_to_np(input.point),
-        vector=map_to_np(input.vector)
-    )
+    return NpAxis3D(point=map_to_np(input.point), vector=map_to_np(input.vector))
+
 
 def _map_tubular(input: Tubular):
     return NpTubular(
@@ -23,6 +24,7 @@ def _map_tubular(input: Tubular):
         diameter=input.diameter,
     )
 
+
 def _map_joint(input: Joint):
     return NpJoint(
         name=input.name,
@@ -30,13 +32,14 @@ def _map_joint(input: Joint):
         origin=map_to_np(input.origin),
     )
 
+
 def _map_model(input: Model):
     return NpModel(name=input.name, joint=map_to_np(input.joint))
 
+
 def _not_found(input: Any):
-    raise TypeError(
-        f"Could not match interface type {type(input)} and numpy types"
-    )
+    raise TypeError(f"Could not match interface type {type(input)} and numpy types")
+
 
 def map_to_np(input: Any) -> Any:
     mappers = {
@@ -46,6 +49,6 @@ def map_to_np(input: Any) -> Any:
         Tubular: _map_tubular,
         Joint: _map_joint,
         Model: _map_model,
-        NoneType: lambda input: None
+        NoneType: lambda input: None,
     }
     return mappers.get(type(input), _not_found)(input)

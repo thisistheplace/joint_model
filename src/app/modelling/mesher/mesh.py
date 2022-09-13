@@ -4,27 +4,28 @@ from itertools import combinations
 
 from .cylinder import add_cylinder
 from .flat import add_flat_tube
+from .holes import create_holes
 
 from ...interfaces.geometry import *
 from ...interfaces.model import *
 from ...interfaces.mesh import *
+from ...interfaces.mapper import map_to_np
 
 FACTORY = gmsh.model.occ
 
 # TODO: need to handle memory exceptions!!! Or try and predict memory usage!
 
-def mesh_tubular(tube: Tubular) -> tuple[int, int]:
+
+def mesh_tubular(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
-    specs = MeshSpecs(
-        size=0.1
-    )
     # return add_cylinder(tube)
     return add_flat_tube(tube, specs)
 
 
-def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
-    joint_mesh = {tube.name: mesh_tubular(tube) for tube in joint.tubes}
-    print(joint_mesh)
+def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
+    joint_mesh = {tube.name: mesh_tubular(tube, specs) for tube in joint.tubes}
+    # TODO: move map to decorator?
+    create_holes(map_to_np(joint.tubes[0]), [map_to_np(joint.tubes[1])], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
@@ -33,10 +34,10 @@ def mesh_joint(joint: Joint) -> dict[str, tuple[int, int]]:
 
 
 @contextmanager
-def mesh_model(model: Model) -> gmsh.model.mesh:
+def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
-        meshed_tubes = mesh_joint(model.joint)
+        meshed_tubes = mesh_joint(model.joint, specs)
 
         FACTORY.synchronize()
 

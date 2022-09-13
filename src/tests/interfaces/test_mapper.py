@@ -11,12 +11,13 @@ from app.interfaces import *
 from app.interfaces.mapper import map_to_np
 from app.interfaces.examples.joints import EXAMPLE_MODELS
 
+
 @pytest.fixture
 def model() -> Model:
     return EXAMPLE_MODELS["TJoint"]
 
+
 class TestMapper:
-    
     def _get_type(self, model: BaseModel, target: Any) -> Any:
         if type(model) is target:
             return model

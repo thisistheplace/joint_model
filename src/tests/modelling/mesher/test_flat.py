@@ -14,11 +14,11 @@ from app.interfaces.mesh import MeshSpecs
 def tube():
     return EXAMPLE_MODELS["TJoint"].joint.tubes[0]
 
+
 @pytest.fixture
 def mesh_specs():
-    return MeshSpecs(
-        size=0.1
-    )
+    return MeshSpecs(size=0.1)
+
 
 @pytest.fixture
 def mesh_context() -> NoneType:
@@ -31,6 +31,5 @@ def mesh_context() -> NoneType:
 
 @pytest.mark.usefixtures("mesh_context")
 class TestAddFlatTube:
-
     def test_add_flat_tube(self, tube, mesh_specs):
         add_flat_tube(tube, mesh_specs)

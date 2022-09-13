@@ -1,6 +1,7 @@
-from collections import deque
+import copy
 from typing import Generator
 import gmsh
+import math
 import numpy as np
 from scipy import optimize
 import sympy
@@ -9,15 +10,17 @@ from ..geometry.vectors import unit_vector
 
 FACTORY = gmsh.model.occ
 
+
 class GeometryException(Exception):
     pass
+
 
 def line_points(
     points_in: list[np.ndarray],
     interval: int | None = None,
     size: float | None = None,
     rtol: float = 1.0e-6,
-    loop: bool = True
+    loop: bool = True,
 ) -> Generator[np.ndarray, np.ndarray, None]:
     """Creates intermediary points in a straight line between points at interval frequency or size.
 
@@ -33,7 +36,9 @@ def line_points(
     Returns:
         Generator of np.ndarray objects including all points (points and intermediary)
     """
-    if (interval is not None and size is not None) or (interval is None and size is None):
+    if (interval is not None and size is not None) or (
+        interval is None and size is None
+    ):
         raise ValueError(
             "Cannot provide values for intervals and size to add_line method"
         )
@@ -63,99 +68,125 @@ def line_points(
         if not np.allclose(midpoint, point2, rtol=rtol):
             yield point2
 
+
 def ellipse_points(
     centre: np.ndarray,
     radius_x: float,
     radius_y: float | None = None,
     interval: int | None = None,
     size: float | None = None,
-    rtol: float = 1.0e-6
+    rtol: float = 1.0e-6,
 ) -> Generator[np.ndarray, np.ndarray, None]:
-    """Creates points around an ellipse at interval frequency or size.
+    pass
 
-    Always creates a closed loop.
+
+def ellipse_quadrant_points(
+    centre: np.ndarray,
+    radius_x: float,
+    radius_y: float | None = None,
+    interval: int | None = None,
+    size: float | None = None,
+    rtol: float = 1.0e-6,
+) -> Generator[np.ndarray, np.ndarray, None]:
+    """Creates points around an ellipse at interval frequency or size within the first quadrant.
+
+    TODO: use a deterministic, non-iterative method to improve performance!
 
     Args:
-        centre: numpy array defining ellipse centre, shape (3,)
+        centre: numpy array defining ellipse centre, shape (2,)
         radius_x: float defining the radius in the x direction
         radius_y: float defining the radius in the y direction (if None, radius_x is taken)
-        interval: number of intervals between adjacent points to create intermediary points
+        interval: number of intervals within a quadrant of the ellipse
         size: size of distances between intermediary points
         rtol: relative tolerance used to determine if first and last points are the same
 
     Returns:
         Generator of np.ndarray objects including all points (points and intermediary)
     """
-    if (interval is not None and size is not None) or (interval is None and size is None):
+    if (interval is not None and size is not None) or (
+        interval is None and size is None
+    ):
         raise ValueError(
             "Cannot provide values for intervals and size to add_line method"
         )
     if centre is None or radius_x is None:
         raise ValueError("Cannot create ellipse loop if centre or radius_x are None.")
-    first = points_in[0]
-    yield first
-    for idx in range(len(points_in) - 1):
-        point1 = points_in[idx]
-        point2 = points_in[idx + 1]
-        vector = point2 - point1
-        length = np.linalg.norm(vector)
-        unit = unit_vector(vector)
-        if interval is not None:
-            size = length / abs(interval)
-        distance = 0.0
-        distance += size
-        while distance <= length or abs(distance - length) < rtol:
-            midpoint = point1 + distance * unit
-            yield midpoint
-            distance += size
-        if not np.allclose(midpoint, point2, rtol=rtol):
-            yield point2
+    if radius_y is None:
+        radius_y = radius_x
 
-def _point_distance(pnt1: np.ndarray, pnt2: np.ndarray, rtol: float) -> float:
-    vector = pnt2 - pnt1
-    if np.allclose(vector, [0.0, 0.0], rtol=rtol):
-        return 0.0
-    return np.linalg.norm(vector)
+    # figure out start point
+    start_point = sympy.Point2D([centre[0] + float(radius_x), centre[1]])
+    start_angle = 0.0
+    # Ellipse is 2D
+    ellipse = sympy.Ellipse(centre[:2], radius_x, radius_y)
+    # setup parametric next point
+    param_angle = sympy.symbols("param_angle")
+    param_point = ellipse.arbitrary_point(param_angle)
+    # determine increment size / segment length
+    if interval is not None:
+        size = ellipse.circumference.evalf() / 4.0 / abs(interval)
+    # TODO: stop being lazy and calculate points at quadrant 1 then rotate 3 times to get the remaining
+    # which should avoid scipy.optimize needing to be called so frequently
+    yield np.array(start_point, dtype=float)
+    while True:
+        pnt_angle = ellipse_segment_angle(ellipse, start_point, start_angle, size, rtol)
+        if pnt_angle >= math.pi / 2.0:
+            pnt_angle = math.pi / 2.0
+            next_point: sympy.Point2D = param_point.subs(param_angle, pnt_angle)
+            return np.array(
+                next_point.coordinates, dtype=float
+            )
+        next_point: sympy.Point2D = param_point.subs(param_angle, pnt_angle)
+        yield np.array(
+            next_point.coordinates, dtype=float
+        )
+        start_point = next_point
+        start_angle = pnt_angle
 
-def _iter_ellipse_angle(input: float, para_point: sympy.Point2D, angle: sympy.Symbol, start: np.ndarray, length: float, rtol: float):
-    point = para_point.subs(angle, input)
-    segment = _point_distance(np.array(point.coordinates, dtype=float), start, rtol)
-    return abs(length - segment)
 
-def ellipse_segment_angle(ellipse: sympy.Ellipse, start: np.ndarray, length: float, rtol=1e-8) -> float:
-    """Calculate the angle associated with a segment length
-    
+def ellipse_segment_angle(
+    ellipse: sympy.Ellipse, start: sympy.Point2D, start_angle: float, length: float, rtol=1e-8
+) -> float:
+    """Calculate the angle associated with a segment length within a 180.0 degree range
+
     Process is iterative using scipy.optimize.minimize
 
     Args:
         ellipse: sympy.Ellipse object
-        start: numpy array defining 2D point on circumference length is measured from
+        start: sympy.Point2D on circumference where length is measured from
+        start_angle: float angle of start point in radians
         length: float defining the target straight length of the segment
         rtol: numerical tolerance for solver
 
-    Returns float angle at length from start
+    Returns float angle of point at segment length from start
     """
-    # check start point is on ellipse circumference
-    start_point = sympy.Point2D(start)
-    if not check_ellipse_intersect(ellipse, start_point):
-        raise GeometryException(f"Starting point {start_point} does not intersect ellipse circumference {ellipse}")
     angle: sympy.Symbol = sympy.symbols("angle")
     pnt: sympy.Point2D = ellipse.arbitrary_point(angle)
-    solution: optimize.OptimizeResult = optimize.minimize_scalar(_iter_ellipse_angle, args=(pnt, angle, start, length, rtol), tol=rtol)
+    solution: optimize.OptimizeResult = optimize.minimize_scalar(
+        _iter_ellipse_angle, args=(pnt, angle, start, length), method="bounded", bounds=[start_angle - abs(rtol), math.pi / 2. + start_angle + abs(rtol)], options={"xatol": rtol}
+    )
     # manual check
-    angle_found = np.array(pnt.subs(angle, solution.x).coordinates, dtype=float)
-    segment = _point_distance(angle_found, start, rtol)
+    point_found = pnt.subs(angle, solution.x)
+    segment = start.distance(point_found).evalf()
     if not solution.success or abs(segment - length) > rtol:
+        msg = f"Could not find point along tubular insect with details:\n" \
+            f"\tstart: {np.array(start.coordinates, dtype=float)}\n" \
+            f"\tpoint: {np.array(point_found.coordinates, dtype=float)}\n" \
+            f"\tangle: {solution.x}\n" \
+            f"\tlength: {length}"
+        # print(f"Could not find point along tubular insect for arc length {length}")
         # TODO: maybe this should be a logged warning?
-        raise GeometryException(f"Could not find point along tubular insect for arc length {length}")
+        raise GeometryException(msg)
     return solution.x
+
 
 def check_ellipse_intersect(ellipse: sympy.Ellipse, point: sympy.Point2D) -> bool:
     return len(ellipse.intersection(point)) == 1
 
+
 def rotate_points(points: np.ndarray, angle: float) -> np.ndarray:
     """Rotate array of 2D coordinates clockwise by angle about centre point (Z axis)
-    
+
     Args:
         points: array of 2D points to rotate shape (2, N)
         centre: array of 2D centre of rotation, shape (2,)
@@ -165,16 +196,17 @@ def rotate_points(points: np.ndarray, angle: float) -> np.ndarray:
     """
     c, s = np.cos(angle), np.sin(angle)
     R = np.array(((c, -s), (s, c)))
-    print(points)
-    print(R.T)
     return points.dot(R.T)
 
-def ellipse_point(ellipse: sympy.Ellipse, angle: float) -> np.ndarray:
-    """Calculate the coordinates on the circumference of an ellipse at angle
-    
-    Args:
-        ellipse: sympy.Ellipse object
-        angle: float defining the angle to calculate the circumferential point
 
-    Returns 3D coordinates of circumferential point
-    """
+def _iter_ellipse_angle(
+    input: float,
+    para_point: sympy.Point2D,
+    angle: sympy.Symbol,
+    start: sympy.Point2D,
+    length: float,
+):
+    next_point = para_point.subs(angle, input)
+    segment = start.distance(next_point).evalf()
+    # explicit float type since scipy.core.numbers.Float does not play nicely with np.isnan
+    return float(abs(length - segment))

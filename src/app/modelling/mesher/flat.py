@@ -58,18 +58,24 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     # NOTE: point order may need to be clockwise!
     key_points = [pt1, pt2, pt3, pt4, pt5, pt6, pt1]
 
-    line_of_points = list(line_points(key_points, interval=specs.interval, size=specs.size))
+    line_of_points = list(
+        line_points(key_points, interval=specs.interval, size=specs.size)
+    )
     pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
-    lines = [FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])]
+    lines = [
+        FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])
+    ]
     curve = FACTORY.addCurveLoop(lines)
     surface = FACTORY.addSurfaceFilling(curve)
     FACTORY.synchronize()
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
-    # FACTORY.remove([2, lines])
+    for l in lines:
+        FACTORY.remove([(1, l)])
     FACTORY.remove([(1, curve)])
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]
+
 
 # def punch_holes()
