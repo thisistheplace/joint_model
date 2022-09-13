@@ -1,10 +1,13 @@
+import math
+from tabnanny import check
 import numpy as np
 import pytest
+import sympy
 import sys
 
 sys.path.append("/src")
 
-from app.modelling.geometry.points import line_points
+from app.modelling.geometry.points import ellipse_segment_angle, line_points, GeometryException, check_ellipse_intersect
 
 
 @pytest.fixture
@@ -15,6 +18,22 @@ def square():
     pnt4 = [0, 10, 0]
     pnts = [pnt1, pnt2, pnt3, pnt4]
     return [np.array(pnt) for pnt in pnts]
+
+@pytest.fixture
+def circle():
+    return sympy.Ellipse(
+        center=np.array([0., 0.]),
+        hradius=1.0,
+        vradius=1.0
+    )
+
+@pytest.fixture
+def ellipse():
+    return sympy.Ellipse(
+        center=np.array([0., 0.]),
+        hradius=1.0,
+        vradius=2.0
+    )
 
 class TestLinePoints:
     @staticmethod
@@ -55,3 +74,27 @@ class TestLinePoints:
     def test_too_few_points(self, square):
         with pytest.raises(ValueError):
             list(line_points([square[0]], interval=10))
+
+class TestEllipse:
+    def test_ellipse_point_intersect_true(self, circle):
+        point = sympy.Point2D([1, 0])
+        assert check_ellipse_intersect(circle, point)
+
+    def test_ellipse_point_intersect_false(self, circle):
+        point = sympy.Point2D([2, 0])
+        assert not check_ellipse_intersect(circle, point)
+
+    def test_ellipse_segment_angle_circle(self, circle):
+        tol = 1e-8
+        angle = ellipse_segment_angle(circle, np.array([1., 0.]), math.sqrt(2.0), tol)
+        assert abs(angle - math.pi / 2) <= tol
+
+    def test_ellipse_segment_angle_circle_start_not_on_circumference(self, ellipse):
+        tol = 1e-8
+        with pytest.raises(GeometryException):
+            ellipse_segment_angle(ellipse, np.array([2., 0.]), math.sqrt(2.0), tol)
+
+    def test_ellipse_segment_angle_ellipse(self, ellipse):
+        tol = 1e-8
+        angle = ellipse_segment_angle(ellipse, np.array([1., 0.]), math.sqrt(5.0), tol)
+        assert abs(angle - math.pi / 2) <= tol
