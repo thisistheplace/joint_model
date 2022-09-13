@@ -1,14 +1,16 @@
 from enum import Enum
 import uuid
 
-from ...interfaces import DashVtkModel, Model
+from ....interfaces import DashVtkModel, Model
 
 
 class JobStatus(Enum):
     PENDING = 1
-    RUNNING = 2
-    COMPLETE = 3
-    ERROR = 4
+    SUBMITTED = 2
+    RUNNING = 3
+    COMPLETE = 4
+    ERROR = 5
+    NOTFOUND = 6
 
 
 class Job:

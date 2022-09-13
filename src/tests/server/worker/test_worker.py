@@ -4,7 +4,7 @@ import sys
 sys.path.append("/src")
 
 from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.server.worker.job import Job
+from app.server.worker.jobs.job import Job
 from app.server.worker.worker import Worker, WorkerException
 
 
@@ -34,8 +34,8 @@ class TestWorkerSingleton:
 class TestWorkerRunsJob:
     def test_worker_runs_job(self, worker):
         jobin = Job(EXAMPLE_MODELS["TJoint"])
-        worker.inqueue.put(jobin)
-        jobout = worker.outqueue.get(timeout=5)
+        worker.submit(jobin)
+        jobout = worker.outqueue.get(timeout=60)
         assert jobin.id == jobout.id
         assert jobout.error is None
         assert jobin.data == jobout.data

@@ -1,7 +1,7 @@
 from multiprocessing import Process, Queue, Event, RLock
 import time
 
-from .job import Job, JobStatus
+from .jobs.job import Job, JobStatus
 from ...converters.model import convert_model_to_dash_vtk
 
 SENTINEL = "STOP"
@@ -30,6 +30,7 @@ class Worker(SingletonProcess):
         super(Worker, self).__init__()
         self._inqueue = Queue()
         self._outqueue = Queue()
+        self._pending = Queue()
         self._stop_event = Event()
         self._lock = RLock()
 
@@ -40,6 +41,61 @@ class Worker(SingletonProcess):
     @property
     def outqueue(self):
         return self._outqueue
+
+    def submit(self, job: Job):
+        with self._lock:
+            job.status = JobStatus.SUBMITTED
+            self._pending.put(job)
+            self.inqueue.put(job)
+
+    def _update_job_status(self, id: str, status: JobStatus):
+        with self._lock:
+            jobs = []
+            while self._pending.qsize() > 0:
+                job = self._pending.get_nowait()
+                if job.id == id:
+                    job.status = status
+                jobs.append(job)
+            for job in jobs:
+                self._pending.put(job)
+
+    def _complete_job(self, job: Job, status: JobStatus):
+        with self._lock:
+            pending_jobs = []
+            while self._pending.qsize() > 0:
+                pending = self._pending.get_nowait()
+                if pending.id == job.id:
+                    break
+                else:
+                    pending_jobs.append(pending)
+            job.status = status
+            self.outqueue.put(job)
+            for pending in pending_jobs:
+                self._pending.put(pending)
+
+    def job_status(self, id: str):
+        with self._lock:
+            jobs = []
+            job_status = None
+            while self._pending.qsize() > 0:
+                job = self._pending.get_nowait()
+                if job.id == id:
+                    job_status = job.status
+                jobs.append(job)
+            for job in jobs:
+                self._pending.put(job)
+            if job_status is None:
+                jobs = []
+                while self.outqueue.qsize() > 0:
+                    job = self.outqueue.get_nowait()
+                    if job.id == id:
+                        job_status = job.status
+                    jobs.append(job)
+                for job in jobs:
+                    self.outqueue.put(job)
+            if job_status is None:
+                return JobStatus.NOTFOUND
+            return job_status
 
     def start(self, *args, **kwargs):
         if self.is_alive():
@@ -60,6 +116,8 @@ class Worker(SingletonProcess):
                 self.join()
             while self.is_alive():
                 time.sleep(DELAY / 1000)
+            while self._pending.qsize() > 0:
+                self._pending.get_nowait()
             self.close()
             del self
 
@@ -86,15 +144,14 @@ class Worker(SingletonProcess):
                 continue
 
             # Mesh object if pending
-            job.status = JobStatus.RUNNING
+            self._update_job_status(job.id, JobStatus.RUNNING)
 
             try:
                 job.mesh = convert_model_to_dash_vtk(job.data)
-                job.status = JobStatus.COMPLETE
+                self._complete_job(job, JobStatus.COMPLETE)
             except Exception as e:
                 job.error = str(e)
-
-            self.outqueue.put(job)
+                self._complete_job(job, JobStatus.ERROR)
 
 
 def run_job(worker: Worker, job: Job):
@@ -103,10 +160,11 @@ def run_job(worker: Worker, job: Job):
             "Worker performing gmsh operations is not running, please contact the administrator"
         )
 
-    worker.inqueue.put(job)
+    worker.submit(job)
 
     output = worker.outqueue.get(timeout=60.0)
     while output.id != job.id:
+        worker.outqueue.put(job)
         time.sleep(DELAY / 1000.0)
         output = worker.outqueue.get(timeout=60.0)
 
