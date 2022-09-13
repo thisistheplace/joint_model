@@ -1,8 +1,11 @@
+import gmsh
 import math
 import numpy as np
 
 from ...interfaces import *
 from ..geometry.intersections import intersections, plane_intersect
+
+FACTORY = gmsh.model.occ
 
 def create_holes(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.ndarray]:
     """Create holes in current mesh based on tubular intersections

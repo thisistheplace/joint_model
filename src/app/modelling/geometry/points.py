@@ -13,7 +13,7 @@ def line_points(
     size: float | None = None,
     rtol: float = 1.0e-6,
     loop: bool = True
-) -> Generator[np.ndarray, None, None]:
+) -> Generator[np.ndarray, np.ndarray, None]:
     """Creates intermediary points in a straight line between points at interval frequency or size.
 
     The order of the points is important and is maintained in the generated list of points.
@@ -51,16 +51,12 @@ def line_points(
             size = length / abs(interval)
         distance = 0.0
         distance += size
-        while distance < length or abs(distance - length) < rtol:
+        while distance <= length or abs(distance - length) < rtol:
             midpoint = point1 + distance * unit
             yield midpoint
             distance += size
-
-    # Add end of loop
-    if loop and not np.isclose(points_in[0], points_in[-1], rtol=rtol).all():
-        yield point2
-    elif loop and np.isclose(points_in[0], points_in[-1], rtol=rtol).all():
-        yield first
+        if not np.allclose(midpoint, point2, rtol=rtol):
+            yield point2
 
 def loop_points(
     points_in: list[np.ndarray],
@@ -68,7 +64,7 @@ def loop_points(
     size: float | None = None,
     rtol: float = 1.0e-6,
     loop: bool = True
-) -> Generator[np.ndarray, None, None]:
+) -> Generator[np.ndarray, np.ndarray, None]:
     """Creates points around an oval at interval frequency or size.
 
     The order of the points is important and is maintained in the generated list of points.
@@ -113,4 +109,6 @@ def loop_points(
 
     # Add end of loop
     if loop and not np.isclose(points_in[0], points_in[-1], rtol=rtol).all():
-        yield point2
+        return point2
+    elif loop and np.isclose(points_in[0], points_in[-1], rtol=rtol).all():
+        yield first
