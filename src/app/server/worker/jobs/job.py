@@ -4,13 +4,13 @@ import uuid
 from ....interfaces import DashVtkModel, Model
 
 
-class JobStatus(Enum):
-    PENDING = 1
-    SUBMITTED = 2
-    RUNNING = 3
-    COMPLETE = 4
-    ERROR = 5
-    NOTFOUND = 6
+class JobStatus(str, Enum):
+    PENDING = "PENDING"
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    COMPLETE = "COMPLETE"
+    ERROR = "ERROR"
+    NOTFOUND = "NOTFOUND"
 
 
 class Job:

@@ -48,6 +48,22 @@ class Worker(SingletonProcess):
             self._pending.put(job)
             self.inqueue.put(job)
 
+    def get_complete(self, id: str) -> Job:
+        with self._lock:
+            status = self.job_status(id)
+            if status in [JobStatus.COMPLETE, JobStatus.ERROR]:
+                jobs = []
+                found = None
+                while self.outqueue.qsize() > 0:
+                    job = self.outqueue.get_nowait()
+                    if job.id == id:
+                        found = job
+                        break
+                    jobs.append(job)
+                for other_job in jobs:
+                    self.outqueue.put(other_job)
+                return found
+
     def _update_job_status(self, id: str, status: JobStatus):
         with self._lock:
             jobs = []
@@ -73,7 +89,7 @@ class Worker(SingletonProcess):
             for pending in pending_jobs:
                 self._pending.put(pending)
 
-    def job_status(self, id: str):
+    def job_status(self, id: str) -> JobStatus:
         with self._lock:
             jobs = []
             job_status = None
@@ -140,7 +156,7 @@ class Worker(SingletonProcess):
                 # skip since this isn't a valid object
                 continue
 
-            elif job.status != JobStatus.PENDING:
+            elif job.status != JobStatus.SUBMITTED:
                 continue
 
             # Mesh object if pending

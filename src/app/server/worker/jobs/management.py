@@ -18,38 +18,37 @@ worker = Worker()
 
 def submit_job(model: Model) -> MeshJob:
     job: Job = Job(model)
-    worker.inqueue.put(job)
+    worker.submit(job)
     return MeshJob(
         id=job.id,
-        status=JobStatus.Pending
+        status=JobStatus.SUBMITTED
     )
 
 def monitor_job(id: str) -> MeshJob:
-    job = Job(model)
-    try:
-        job = run_job(worker, job)
-
-        def iterfile():
-            with io.StringIO() as file_like:
-                json.dump(job.mesh.dict(), file_like, cls=NpEncoder)
-                file_like.seek(0)
-                yield from file_like
-
-        return StreamingResponse(iterfile(), media_type="application/json")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
+    return MeshJob(
+        id=id,
+        status=worker.job_status(id)
+    )
 
 def get_job(id: str) -> StreamingResponse:
-    job = Job(model)
-    try:
-        job = run_job(worker, job)
+    status = worker.job_status(id)
+    if status == JobStatus.ERROR:
+        job = worker.get_complete(id)
+        if job is not None:
+            raise HTTPException(status_code=500, detail=f"Error while generating mesh: {job.error}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Could not find job: {job.id}")
+    elif status == JobStatus.COMPLETE:
+        try:
+            job = worker.get_complete(id)
+            def iterfile():
+                with io.StringIO() as file_like:
+                    json.dump(job.mesh.dict(), file_like, cls=NpEncoder)
+                    file_like.seek(0)
+                    yield from file_like
 
-        def iterfile():
-            with io.StringIO() as file_like:
-                json.dump(job.mesh.dict(), file_like, cls=NpEncoder)
-                file_like.seek(0)
-                yield from file_like
-
-        return StreamingResponse(iterfile(), media_type="application/json")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
+            return StreamingResponse(iterfile(), media_type="application/json")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
+    else:
+        raise HTTPException(status_code=500, detail=f"Job is not complete, current status is: {status}")
