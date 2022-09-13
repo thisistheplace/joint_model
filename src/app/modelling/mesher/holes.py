@@ -1,5 +1,4 @@
 import gmsh
-import math
 import numpy as np
 
 from ...interfaces import *
@@ -26,7 +25,7 @@ def create_holes(master: NpTubular, slaves: list[NpTubular], specs: MeshSpecs) -
     slave_dict = {slave.name: slave for slave in slaves}
     intersects = intersections(master, slaves)
     # TODO: determine radii of ellipse at intersection
-    for k, point in intersections(master, slaves).items():
+    for k, point in intersects.items():
         radius = slave_dict[k].diameter / 2.0
         pnt_tags = [FACTORY.addPoint(pnt[0], pnt[1], point[2]) for pnt in ellipse_quadrant_points(point, radius, size=specs.size)]
         lines = [

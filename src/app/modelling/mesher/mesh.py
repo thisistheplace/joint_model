@@ -25,12 +25,13 @@ def mesh_tubular(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {tube.name: mesh_tubular(tube, specs) for tube in joint.tubes}
     # TODO: move map to decorator?
+    specs = MeshSpecs(size=0.01)
     create_holes(map_to_np(joint.tubes[0]), [map_to_np(joint.tubes[1])], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
         gmsh.model.setPhysicalName(dim, gid, k)
-    return joint_mesh
+        return joint_mesh
 
 
 @contextmanager

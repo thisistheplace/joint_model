@@ -61,6 +61,7 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     line_of_points = list(
         line_points(key_points, interval=specs.interval, size=specs.size)
     )
+    
     pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
     lines = [
         FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])

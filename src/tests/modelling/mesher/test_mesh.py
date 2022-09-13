@@ -20,7 +20,7 @@ def model():
 
 @pytest.fixture
 def mesh_specs():
-    return MeshSpecs(size=0.01)
+    return MeshSpecs(size=0.1)
 
 
 @pytest.fixture
@@ -38,8 +38,7 @@ class TestMeshJoint:
         mesh = mesh_joint(joint, mesh_specs)
         assert mesh is not None
 
-# @pytest.mark.usefixtures("mesh_context")
-# class TestMeshModel:
-#     def test_mesh_model(self, model, mesh_specs):
-#         with mesh_model(model) as mesh:
-#             assert mesh is not None
+class TestMeshModel:
+    def test_mesh_model(self, model, mesh_specs):
+        with mesh_model(model, mesh_specs) as mesh:
+            assert mesh is not None
