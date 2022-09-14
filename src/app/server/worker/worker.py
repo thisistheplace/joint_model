@@ -1,4 +1,5 @@
-from multiprocessing import Process, Queue, Event, RLock
+from multiprocessing import Process, Queue, Event, Lock, RLock
+import queue
 import time
 
 from .jobs.job import Job, JobStatus
@@ -26,13 +27,14 @@ class SingletonProcess(Process):
 
 
 class Worker(SingletonProcess):
+    """TODO: add process safe dictionary access to avoid queue juggling?"""
     def __init__(self):
         super(Worker, self).__init__()
         self._inqueue = Queue()
         self._outqueue = Queue()
         self._pending = Queue()
         self._stop_event = Event()
-        self._lock = RLock()
+        self._lock = Lock()
 
     @property
     def inqueue(self):
@@ -54,12 +56,15 @@ class Worker(SingletonProcess):
             if status in [JobStatus.COMPLETE, JobStatus.ERROR]:
                 jobs = []
                 found = None
-                while self.outqueue.qsize() > 0:
-                    job = self.outqueue.get_nowait()
-                    if job.id == id:
-                        found = job
-                        break
-                    jobs.append(job)
+                try:
+                    while self.outqueue.qsize() > 0:
+                        job = self.outqueue.get_nowait()
+                        if job.id == id:
+                            found = job
+                            break
+                        jobs.append(job)
+                except queue.Empty:
+                    pass
                 for other_job in jobs:
                     self.outqueue.put(other_job)
                 return found
@@ -67,23 +72,29 @@ class Worker(SingletonProcess):
     def _update_job_status(self, id: str, status: JobStatus):
         with self._lock:
             jobs = []
-            while self._pending.qsize() > 0:
-                job = self._pending.get_nowait()
-                if job.id == id:
-                    job.status = status
-                jobs.append(job)
+            try:
+                while self._pending.qsize() > 0:
+                    job = self._pending.get_nowait()
+                    if job.id == id:
+                        job.status = status
+                    jobs.append(job)
+            except queue.Empty:
+                pass
             for job in jobs:
                 self._pending.put(job)
 
     def _complete_job(self, job: Job, status: JobStatus):
         with self._lock:
             pending_jobs = []
-            while self._pending.qsize() > 0:
-                pending = self._pending.get_nowait()
-                if pending.id == job.id:
-                    break
-                else:
-                    pending_jobs.append(pending)
+            try:
+                while self._pending.qsize() > 0:
+                    pending = self._pending.get_nowait()
+                    if pending.id == job.id:
+                        break
+                    else:
+                        pending_jobs.append(pending)
+            except queue.Empty:
+                pass
             job.status = status
             self.outqueue.put(job)
             for pending in pending_jobs:
@@ -93,20 +104,26 @@ class Worker(SingletonProcess):
         with self._lock:
             jobs = []
             job_status = None
-            while self._pending.qsize() > 0:
-                job = self._pending.get_nowait()
-                if job.id == id:
-                    job_status = job.status
-                jobs.append(job)
+            try:
+                while self._pending.qsize() > 0:
+                    job = self._pending.get_nowait()
+                    if job.id == id:
+                        job_status = job.status
+                    jobs.append(job)
+            except queue.Empty:
+                pass
             for job in jobs:
                 self._pending.put(job)
             if job_status is None:
                 jobs = []
-                while self.outqueue.qsize() > 0:
-                    job = self.outqueue.get_nowait()
-                    if job.id == id:
-                        job_status = job.status
-                    jobs.append(job)
+                try:
+                    while self.outqueue.qsize() > 0:
+                        job = self.outqueue.get_nowait()
+                        if job.id == id:
+                            job_status = job.status
+                        jobs.append(job)
+                except queue.Empty:
+                    pass
                 for job in jobs:
                     self.outqueue.put(job)
             if job_status is None:

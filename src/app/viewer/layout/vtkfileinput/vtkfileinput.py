@@ -19,7 +19,7 @@ from .fileutils import parse_contents
 from ..ids import Ids
 from ..toast import make_toast
 from ..vtkmeshviewer import VtkMeshViewerAIO
-from ...requests.requests import get_mesh
+from ...requests.requests import submit_job
 from ....interfaces import Model
 from ....interfaces.examples.joints import EXAMPLE_MODELS
 from ....interfaces.validation import validate_and_convert_json
@@ -76,7 +76,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                     "top": "0px",
                                     "right": "0px",
                                     "padding": "20px",
-                                    "zindex": "1000",
+                                    "z-index": "1000",
                                 },
                             ),
                             dbc.Accordion(
@@ -253,7 +253,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
         State(ids.jsonstore(MATCH), "value"),
         prevent_initial_call=True,
     )
-    def func(input, mesh, modeldata):
+    def func(input, _, modeldata):
         button_id = callback_context.triggered[0]["prop_id"].split(".")[0]
         if button_id == "":
             return no_update
@@ -266,7 +266,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
 
         # generate mesh if required
         if button_id["subcomponent"] == "downloadmesh":
-            json_model = asyncio.run(get_mesh(json_model))
+            json_model = asyncio.run(submit_job(json_model))
 
         return dcc.send_string(
             json.dumps(json_model.dict(), indent=4), f"{json_model.name}.json"

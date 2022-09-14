@@ -8,7 +8,7 @@ def make_toast(id: str, header: str):
         is_open=False,
         dismissable=True,
         icon="danger",
-        duration=6000,
+        # duration=6000,
         # top: 66 positions the toast below the navbar
         style={
             "position": "fixed",

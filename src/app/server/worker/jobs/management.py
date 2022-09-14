@@ -41,6 +41,8 @@ def get_job(id: str) -> StreamingResponse:
     elif status == JobStatus.COMPLETE:
         try:
             job = worker.get_complete(id)
+            if job is None:
+                raise TypeError("Could not find requested job")
             def iterfile():
                 with io.StringIO() as file_like:
                     json.dump(job.mesh.dict(), file_like, cls=NpEncoder)

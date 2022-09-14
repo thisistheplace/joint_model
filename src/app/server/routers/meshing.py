@@ -32,10 +32,10 @@ def submit_model_to_mesher(model: Model):
     # do some validation here!
     return submit_job(model)
 
-@router.get("/meshmodel/monitor", response_model=MeshJob)
-def monitor_job(job_id: str):
+@router.get("/meshmodel/monitor/{job_id}", response_model=MeshJob)
+def get_job_status(job_id: str):
     return monitor_job(job_id)
 
-@router.get("/meshmodel/mesh")
+@router.get("/meshmodel/mesh/{job_id}")
 def get_model_from_mesher(job_id: str):
     return get_job(job_id)
