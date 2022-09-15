@@ -21,8 +21,10 @@ from ...interfaces.examples.joints import EXAMPLE_MODELS
 class Manager(Singleton):
     """Submit and monitor jobs"""
     def __init__(self):
+        super(Manager, self).__init__()
         self._cache = Cache() # singleton
-        self._runners = {} # hold runner threads
+        if not hasattr(self, "_runners"):
+            self._runners = {} # hold runner threads
         self._worker = Worker() # singleton
 
     @property
@@ -59,7 +61,6 @@ class Manager(Singleton):
 
     def get_job(self, id: str) -> StreamingResponse:
         job = get_job(id)
-        print(str(job))
         if job.status == JobStatus.ERROR:
             raise HTTPException(status_code=500, detail=f"Error while generating mesh: {job.error}")
         elif job.status == JobStatus.COMPLETE:
@@ -79,8 +80,6 @@ class Manager(Singleton):
     def wait_for_job(self, id: str) -> threading.Condition:
         try:
             with self.runners[id].notification:
-                print("waiting")
                 self.runners[id].notification.wait()
-                print("waited!")
         except KeyError:
             raise KeyError(f"Job with id {id.split('-')[0]} is not running")

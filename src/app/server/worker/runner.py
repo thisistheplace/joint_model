@@ -48,12 +48,9 @@ class RunJob(threading.Thread):
             try:
                 output = self._worker.outqueue.get()
                 if output.id == self._id:
-                    print("completed job!")
                     store_job(job)
                     with self.notification:
-                        print("notifying")
                         self.notification.notify_all()
-                        print("notified")
                     return
                 self._worker.outqueue.put(job)
             except queue.Empty:

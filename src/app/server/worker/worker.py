@@ -15,10 +15,11 @@ class WorkerException(Exception):
 class Worker(SingletonProcess):
     def __init__(self):
         super(Worker, self).__init__()
-        self._inqueue = Queue()
-        self._outqueue = Queue()
-        self._stop_event = Event()
-        self._lock = RLock()
+        if not hasattr(self, "_inqueue"):
+            self._inqueue = Queue()
+            self._outqueue = Queue()
+            self._stop_event = Event()
+            self._lock = RLock()
 
     @property
     def inqueue(self):
