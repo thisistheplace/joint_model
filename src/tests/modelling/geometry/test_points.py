@@ -8,7 +8,7 @@ import sys
 
 sys.path.append("/src")
 
-from app.modelling.geometry.points import (
+from app.modelling.geometry.line import (
     ellipse_segment_angle,
     line_points,
     GeometryException,

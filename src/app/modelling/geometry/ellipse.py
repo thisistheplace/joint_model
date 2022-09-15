@@ -1,4 +1,3 @@
-import copy
 from typing import Generator
 import gmsh
 import math
@@ -6,79 +5,11 @@ import numpy as np
 from scipy import optimize
 import sympy
 
-from ..geometry.vectors import unit_vector
+from .exceptions import GeometryException
 
 FACTORY = gmsh.model.occ
 
-
-class GeometryException(Exception):
-    pass
-
-
-def line_points(
-    points_in: list[np.ndarray],
-    interval: int | None = None,
-    size: float | None = None,
-    rtol: float = 1.0e-6,
-    loop: bool = True,
-) -> Generator[np.ndarray, np.ndarray, None]:
-    """Creates intermediary points in a straight line between points at interval frequency or size.
-
-    The order of the points is important and is maintained in the generated list of points.
-
-    Args:
-        points_in: list of numpy arrays of shape (3,)
-        interval: number of intervals between adjacent points to create intermediary points
-        size: size of distances between intermediary points
-        rtol: relative tolerance used to determine if first and last points are the same
-        loop: if True (default) then repeats the first point at the end to create a full loop
-
-    Returns:
-        Generator of np.ndarray objects including all points (points and intermediary)
-    """
-    if (interval is not None and size is not None) or (
-        interval is None and size is None
-    ):
-        raise ValueError(
-            "Cannot provide values for intervals and size to add_line method"
-        )
-    if len(points_in) < 2:
-        raise ValueError("Cannot create line between less than 2 points")
-
-    # check whether first and last point are the sameg
-    if not np.isclose(points_in[0], points_in[-1], rtol=rtol).all() and loop:
-        points_in = points_in + [points_in[0]]
-
-    first = points_in[0]
-    yield first
-    for idx in range(len(points_in) - 1):
-        point1 = points_in[idx]
-        point2 = points_in[idx + 1]
-        vector = point2 - point1
-        length = np.linalg.norm(vector)
-        unit = unit_vector(vector)
-        if interval is not None:
-            size = length / abs(interval)
-        distance = 0.0
-        distance += size
-        while distance <= length or abs(distance - length) < rtol:
-            midpoint = point1 + distance * unit
-            yield midpoint
-            distance += size
-        if not np.allclose(midpoint, point2, rtol=rtol):
-            yield point2
-
-
-def ellipse_points(
-    centre: np.ndarray,
-    radius_x: float,
-    radius_y: float | None = None,
-    interval: int | None = None,
-    size: float | None = None,
-    rtol: float = 1.0e-6,
-) -> Generator[np.ndarray, np.ndarray, None]:
-    pass
-
+# TODO: review this https://www.maplesoft.com/applications/Preview.aspx?id=3773
 
 def ellipse_quadrant_points(
     centre: np.ndarray,

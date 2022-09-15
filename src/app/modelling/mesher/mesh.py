@@ -1,3 +1,33 @@
+"""Overall approach of generating a mesh
+
+1. Re-orient into an easy to manage plane
+    a. Rotate all tubulars about the master.point such that the master
+    vector is aligned with the Z axis
+
+2. Tubular intersections center point
+    a. Create XZ plane (master vector is now on this plane)
+    b. Calculate the intersections of the slave tubes on the XZ plane
+    c. Offset the intersections to the tube surface
+
+3. Tubular intersections weldline
+    a. Create XZ plane at each intersection center point
+    b. Create ellipse of points on this plane aligned with correct orientation (?)
+
+4. Wrap into tubular
+    a. Take planes and wrap them into tubulars
+
+5. Reorientate everything based on inverse of 1.
+
+
+OR
+
+1. Use vector maths
+
+OR
+
+1. Find intersection at vectors offset from tube centreline
+    
+"""
 from contextlib import contextmanager
 import gmsh
 from itertools import combinations
