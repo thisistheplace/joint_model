@@ -41,6 +41,8 @@ from ...interfaces.model import *
 from ...interfaces.mesh import *
 from ...interfaces.mapper import map_to_np
 
+from ..geometry.intersections import intersections
+
 FACTORY = gmsh.model.occ
 
 # TODO: need to handle memory exceptions!!! Or try and predict memory usage!
@@ -61,8 +63,8 @@ def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh.update({joint.master.name: mesh_master(joint.master, specs)})
     # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
-    specs = MeshSpecs(size=0.01)
-    slave_holes = create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], joint_mesh[joint.master.name][1], specs)
+    specs = MeshSpecs(size=0.1)
+    create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], joint_mesh[joint.master.name][1], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])

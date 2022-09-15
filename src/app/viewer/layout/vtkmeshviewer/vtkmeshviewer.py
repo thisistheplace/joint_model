@@ -53,7 +53,7 @@ class VtkMeshViewerAIO(html.Div):
             children
             + [  # Equivalent to `html.Div([...])`
                 dcc.Interval(
-                    id=self.ids.interval(aio_id), interval=500, max_intervals=0
+                    id=self.ids.interval(aio_id), interval=1000, max_intervals=0
                 ),
                 make_toast(id=self.ids.submittoast(aio_id), header="Job submission"),
                 make_toast(id=self.ids.monitortoast(aio_id), header="Job monitor"),

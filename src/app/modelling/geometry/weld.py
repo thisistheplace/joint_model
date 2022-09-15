@@ -5,7 +5,7 @@ from scipy.spatial.transform import Rotation
 import sympy
 from typing import Generator
 
-from .vectors import angle_between_vectors
+from .vectors import unit_vector
 from .intersections import plane_intersect, circle_intersect, IntersectionError
 from ...interfaces import *
 
@@ -23,16 +23,37 @@ def z(r1: float, r2: float, phi: float, pheta: float) -> float:
         (r2 * cos(pheta) - cos(phi) * sqrt(-1 * (r2 ** 2) + (r2 ** 2) * (cos(pheta) ** 2)+ (r1 ** 2))) / \
             sin(phi)
 
+def unit_perp_vector(vector: np.ndarray) -> np.ndarray:
+    if vector[1] != 0.0 or vector[2] != 0.0:
+        temp = np.array([1., 0., 0.])
+    else:
+        temp = np.array([0., 1., 0.])
+    return unit_vector(np.cross(vector, temp))
 
 def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[np.ndarray, np.ndarray, None]:
+    """Y/Z plane"""
+    perp = unit_perp_vector(slave.axis.vector.array)
+
+    p2 = deepcopy(master.axis.vector.array)
+    p2[1] += 1.0
+    p3 = deepcopy(master.axis.vector.array)
+    p3[2] += 1.0
+    plane: sympy.Plane = sympy.Plane(
+        sympy.Point3D(master.axis.vector.array), sympy.Point3D(p2), sympy.Point3D(p3)
+    )
+
+    plane_point = plane_intersect(slave.axis.vector.array, slave.axis.point.array, plane)
+
+    print(perp, slave.diameter / 2., plane_point)
+
     for degrees in range(0, 361, 10):
-        angle = degrees * math.pi / 360
+        angle = degrees * math.pi / 180
 
         # calculate new vector and point
-        rotation_vector = angle * slave.axis.point.array
+        rotation_vector = angle * slave.axis.vector.array
         rotation = Rotation.from_rotvec(rotation_vector)
-        rotated_point = rotation.apply(slave.axis.point.array)
-        rotated_vector = rotation.apply(slave.axis.vector.array)
+        rotated_point = plane_point + rotation.apply(perp * slave.diameter / 2.)
+        print(angle, rotation_vector, rotated_point)
 
         # Get 2D point of intersection with the circle
         # intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, rotated_point, rotated_vector)
@@ -52,12 +73,5 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[
         # plane_point = np.array(
         #     [intersect2D[0], intersect2D[1], rotated_point[2]]
         # )
-        p2 = deepcopy(rotated_point)
-        p2[0] += 1.0
-        p3 = deepcopy(rotated_point)
-        p3[2] += 1.0
-        plane: sympy.Plane = sympy.Plane(
-            sympy.Point3D(rotated_point), sympy.Point3D(p2), sympy.Point3D(p3)
-        )
-        intersect3D = plane_intersect(rotated_vector, rotated_point, plane)
+        intersect3D = plane_intersect(slave.axis.vector.array, rotated_point, plane)
         yield np.array(intersect3D, dtype=float)

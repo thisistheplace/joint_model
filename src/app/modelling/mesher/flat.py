@@ -18,7 +18,7 @@ FACTORY = gmsh.model.occ
 def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     """Make a flat mesh out of a tubular
 
-    Initially create it in the x, y plane where 1 is at
+    Initially create it in the Y/Z plane where 1 is at
     the tube.axis.point.
 
         5-------4-------3
@@ -35,26 +35,29 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     """
     nptube: NpTubular = map_to_np(tube)
     length = np.linalg.norm(nptube.axis.vector.array)
-    circumference = 2 * math.pi * nptube.diameter
+    circumference = math.pi * nptube.diameter
 
     pt1 = nptube.axis.point.array
 
     pt2 = deepcopy(pt1)
-    pt2[0] += circumference
+    pt2[1] += circumference / 2.0
 
     pt3 = deepcopy(pt1)
-    pt3[0] += circumference
-    pt3[1] += length
+    pt3[1] += circumference / 2.0
+    pt3[2] += length
 
     pt4 = deepcopy(pt1)
-    pt4[1] += length
+    pt4[2] += length
 
     pt5 = deepcopy(pt1)
-    pt5[0] -= circumference
-    pt5[1] += length
+    pt5[1] -= circumference / 2.0
+    pt5[2] += length
 
     pt6 = deepcopy(pt1)
-    pt6[0] -= circumference
+    pt6[1] -= circumference / 2.0
+
+    print(f"Height: {length}")
+    print(f"Width: {circumference}")
 
     # closed loop
     # NOTE: point order may need to be clockwise!
@@ -77,6 +80,7 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     for l in lines:
         FACTORY.remove([(1, l)])
     FACTORY.remove([(1, curve)])
+    FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]
 
