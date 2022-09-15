@@ -4,11 +4,12 @@ import numpy as np
 from ...interfaces import *
 from ..geometry.intersections import intersections
 from ..geometry.ellipse import ellipse_quadrant_points
+from ..geometry.weld import get_weld_intersect_points
 
 FACTORY = gmsh.model.occ
 
 
-def create_holes(master: NpTubular, slaves: list[NpTubular], specs: MeshSpecs) -> dict[str, np.ndarray]:
+def create_holes(master: NpTubular, slaves: list[NpTubular], surface: int, specs: MeshSpecs) -> dict[str, np.ndarray]:
     """Create holes in current mesh based on tubular intersections
 
     Args:
@@ -22,19 +23,21 @@ def create_holes(master: NpTubular, slaves: list[NpTubular], specs: MeshSpecs) -
     Raises:
         IntersectionError if any of the slaves don't intersect the master
     """
-    slave_dict = {slave.name: slave for slave in slaves}
-    intersects = intersections(master, slaves)
+    slave_holes = {}
     # TODO: determine radii of ellipse at intersection
-    for k, point in intersects.items():
-        radius = slave_dict[k].diameter / 2.0
-        pnt_tags = [FACTORY.addPoint(pnt[0], pnt[1], point[2]) for pnt in ellipse_quadrant_points(point, radius, size=specs.size)]
+    for slave in slaves:
+        pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in get_weld_intersect_points(master, slave)]
+        FACTORY.synchronize()
+        # [gmsh.model.mesh.embed(0, [pnt], 2, surface) for pnt in pnt_tags]
         lines = [
             FACTORY.addLine(pnt, pnt_tags[idx + 1])
             for idx, pnt in enumerate(pnt_tags[:-1])
         ]
         curve = FACTORY.addSpline(lines)
         FACTORY.synchronize()
-        for l in lines:
-            FACTORY.remove([(1, l)])
+        slave_holes[slave.name] = curve
+        gmsh.model.mesh.embed(1, [curve], 2, surface)
+        # for l in lines:
+        #     FACTORY.remove([(1, l)])
 
-    return intersects
+    return slave_holes

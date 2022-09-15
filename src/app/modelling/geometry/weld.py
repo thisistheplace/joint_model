@@ -1,6 +1,7 @@
 from copy import deepcopy
 import math
 from math import cos, sin, sqrt
+from scipy.spatial.transform import Rotation
 import sympy
 from typing import Generator
 
@@ -28,10 +29,13 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[
         angle = degrees * math.pi / 360
 
         # calculate new vector and point
-        
+        rotation_vector = angle * slave.axis.point.array
+        rotation = Rotation.from_rotvec(rotation_vector)
+        rotated_point = rotation.apply(slave.axis.point.array)
+        rotated_vector = rotation.apply(slave.axis.vector.array)
 
         # Get 2D point of intersection with the circle
-        intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
+        intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, rotated_point, rotated_vector)
 
         if len(intersect2D_array) == 0:
             raise IntersectionError(f"No intersections found for {slave.name} on {master.name} at angle {angle}")
@@ -39,14 +43,14 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[
         # Use point to determine side of circle intersect to use
         for intersect2D in intersect2D_array:
             intersect_vector = intersect2D - master.axis.point.array[:2]
-            point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
+            point_vector = rotated_point[:2] - master.axis.point.array[:2]
             angle2D = angle_between_vectors(intersect_vector, point_vector)
             if angle2D <= math.pi / 2:
                 break
 
         # Determine intersection of vector with plane
         plane_point = np.array(
-            [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
+            [intersect2D[0], intersect2D[1], rotated_point[2]]
         )
         p2 = deepcopy(plane_point)
         p2[0] += 1.0
@@ -55,5 +59,5 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[
         plane: sympy.Plane = sympy.Plane(
             sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
         )
-        intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
+        intersect3D = plane_intersect(rotated_vector, plane_point, plane)
         yield np.array(intersect3D, dtype=float)

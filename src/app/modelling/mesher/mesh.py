@@ -59,10 +59,10 @@ def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {}
     joint_mesh.update({joint.master.name: mesh_master(joint.master, specs)})
-    joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
+    # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
     specs = MeshSpecs(size=0.01)
-    #create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], specs)
+    slave_holes = create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], joint_mesh[joint.master.name][1], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
