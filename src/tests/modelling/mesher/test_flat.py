@@ -12,7 +12,7 @@ from app.interfaces.mesh import MeshSpecs
 
 @pytest.fixture
 def tube():
-    return EXAMPLE_MODELS["TJoint"].joint.tubes[0]
+    return EXAMPLE_MODELS["TJoint"].joint.slaves[0]
 
 
 @pytest.fixture

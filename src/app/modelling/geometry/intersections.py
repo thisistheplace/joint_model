@@ -43,6 +43,9 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
         # Get 2D point of intersection with the circle
         intersect2D_array = circle_intersect(master, slave)
 
+        if len(intersect2D_array) == 0:
+            raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
+
         # Use point to determine side of circle intersect to use
         for intersect2D in intersect2D_array:
             intersect_vector = intersect2D - master.axis.point.array[:2]
@@ -64,7 +67,7 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
 def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
     """Calculate 3D point where slave intersects plane
 
-    Plane is in X/Y plane.
+    Plane is in X/Z plane.
 
     Args:
         tube: 3D tubular which may intersect master
@@ -77,11 +80,11 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
         IntersectionError if the slave does not intersect the master
     """
     # create tube projection plane at point of intersect on circle
-    # plane is in X/Y system
+    # plane is in X/Z system
     p2 = deepcopy(point)
     p2[0] += 1.0
     p3 = deepcopy(point)
-    p3[1] += 1.0
+    p3[2] += 1.0
     plane: sympy.Plane = sympy.Plane(
         sympy.Point3D(point), sympy.Point3D(p2), sympy.Point3D(p3)
     )
@@ -89,6 +92,8 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
     try:
         # only one intersect for a line and plane
         intersect = plane.intersection(line)[0]
+        if isinstance(intersect, sympy.Line3D):
+            return point
         return np.array(intersect, dtype=float)
     except Exception as e:
         # Handle some specific exception here where an intersection is not found
@@ -98,6 +103,8 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
 
 def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Calculate 2D point where slave intersects master tube
+
+    2D plane is in X/Y plane
 
     Args:
         master: 3D tubular with slave tube which may intersect

@@ -33,7 +33,7 @@ def mesh_context() -> NoneType:
 @pytest.mark.usefixtures("mesh_context")
 class TestCreateHoles:
     def test_create_holes(self, joint, mesh_specs):
-        master = map_to_np(joint.tubes[0])
-        slaves = [map_to_np(joint.tubes[1])]
+        master = map_to_np(joint.master)
+        slaves = [map_to_np(tube) for tube in joint.slaves]
         holes: dict = create_holes(master, slaves, mesh_specs)
-        assert len(list(holes.keys())) > 0
+        assert len(list(holes.keys())) == 1

@@ -28,7 +28,8 @@ def _map_tubular(input: Tubular):
 def _map_joint(input: Joint):
     return NpJoint(
         name=input.name,
-        tubes=[map_to_np(tube) for tube in input.tubes],
+        master=map_to_np(input.master),
+        slaves=[map_to_np(tube) for tube in input.slaves],
         origin=map_to_np(input.origin),
     )
 
