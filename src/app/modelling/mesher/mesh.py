@@ -48,8 +48,8 @@ FACTORY = gmsh.model.occ
 
 def mesh_master(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
-    return add_cylinder(tube)
-    # return add_flat_tube(tube, specs)
+    # return add_cylinder(tube)
+    return add_flat_tube(tube, specs)
 
 def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
