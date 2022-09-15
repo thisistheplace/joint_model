@@ -1,16 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 
-import io
-import json
-
-from app.converters.encoder import NpEncoder
 from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.server.worker.worker import run_job, Worker
-from app.server.worker.jobs.job import Job
+from app.server.worker.worker import Worker
 
 from ..worker.jobs.interfaces import MeshJob
-from ..worker.jobs.management import submit_job, get_job, monitor_job
+from ..worker.management import submit_job, get_job, monitor_job
 
 from ...interfaces import Model
 from ...interfaces.examples.joints import EXAMPLE_MODELS

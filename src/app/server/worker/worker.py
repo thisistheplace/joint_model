@@ -1,5 +1,4 @@
-from multiprocessing import Process, Queue, Event, Lock, RLock
-import queue
+from multiprocessing import Process, Queue, Event, RLock
 import time
 
 from .jobs.job import Job, JobStatus
@@ -27,14 +26,12 @@ class SingletonProcess(Process):
 
 
 class Worker(SingletonProcess):
-    """TODO: add process safe dictionary access to avoid queue juggling?"""
     def __init__(self):
         super(Worker, self).__init__()
         self._inqueue = Queue()
         self._outqueue = Queue()
-        self._pending = Queue()
         self._stop_event = Event()
-        self._lock = Lock()
+        self._lock = RLock()
 
     @property
     def inqueue(self):
@@ -44,91 +41,11 @@ class Worker(SingletonProcess):
     def outqueue(self):
         return self._outqueue
 
-    def submit(self, job: Job):
+    def submit(self, job: Job) -> Job:
         with self._lock:
             job.status = JobStatus.SUBMITTED
-            self._pending.put(job)
             self.inqueue.put(job)
-
-    def get_complete(self, id: str) -> Job:
-        with self._lock:
-            status = self.job_status(id)
-            if status in [JobStatus.COMPLETE, JobStatus.ERROR]:
-                jobs = []
-                found = None
-                try:
-                    while self.outqueue.qsize() > 0:
-                        job = self.outqueue.get_nowait()
-                        if job.id == id:
-                            found = job
-                            break
-                        jobs.append(job)
-                except queue.Empty:
-                    pass
-                for other_job in jobs:
-                    self.outqueue.put(other_job)
-                return found
-
-    def _update_job_status(self, id: str, status: JobStatus):
-        with self._lock:
-            jobs = []
-            try:
-                while self._pending.qsize() > 0:
-                    job = self._pending.get_nowait()
-                    if job.id == id:
-                        job.status = status
-                    jobs.append(job)
-            except queue.Empty:
-                pass
-            for job in jobs:
-                self._pending.put(job)
-
-    def _complete_job(self, job: Job, status: JobStatus):
-        with self._lock:
-            pending_jobs = []
-            try:
-                while self._pending.qsize() > 0:
-                    pending = self._pending.get_nowait()
-                    if pending.id == job.id:
-                        break
-                    else:
-                        pending_jobs.append(pending)
-            except queue.Empty:
-                pass
-            job.status = status
-            self.outqueue.put(job)
-            for pending in pending_jobs:
-                self._pending.put(pending)
-
-    def job_status(self, id: str) -> JobStatus:
-        with self._lock:
-            jobs = []
-            job_status = None
-            try:
-                while self._pending.qsize() > 0:
-                    job = self._pending.get_nowait()
-                    if job.id == id:
-                        job_status = job.status
-                    jobs.append(job)
-            except queue.Empty:
-                pass
-            for job in jobs:
-                self._pending.put(job)
-            if job_status is None:
-                jobs = []
-                try:
-                    while self.outqueue.qsize() > 0:
-                        job = self.outqueue.get_nowait()
-                        if job.id == id:
-                            job_status = job.status
-                        jobs.append(job)
-                except queue.Empty:
-                    pass
-                for job in jobs:
-                    self.outqueue.put(job)
-            if job_status is None:
-                return JobStatus.NOTFOUND
-            return job_status
+            return job
 
     def start(self, *args, **kwargs):
         if self.is_alive():
@@ -149,8 +66,8 @@ class Worker(SingletonProcess):
                 self.join()
             while self.is_alive():
                 time.sleep(DELAY / 1000)
-            while self._pending.qsize() > 0:
-                self._pending.get_nowait()
+            while self.outqueue.qsize() > 0:
+                self.outqueue.get_nowait()
             self.close()
             del self
 
@@ -176,31 +93,10 @@ class Worker(SingletonProcess):
             elif job.status != JobStatus.SUBMITTED:
                 continue
 
-            # Mesh object if pending
-            self._update_job_status(job.id, JobStatus.RUNNING)
-
             try:
                 job.mesh = convert_model_to_dash_vtk(job.data)
-                self._complete_job(job, JobStatus.COMPLETE)
+                job.status = JobStatus.COMPLETE
             except Exception as e:
                 job.error = str(e)
-                self._complete_job(job, JobStatus.ERROR)
-
-
-def run_job(worker: Worker, job: Job):
-    if not worker.is_alive():
-        raise WorkerException(
-            "Worker performing gmsh operations is not running, please contact the administrator"
-        )
-
-    worker.submit(job)
-
-    output = worker.outqueue.get(timeout=60.0)
-    while output.id != job.id:
-        worker.outqueue.put(job)
-        time.sleep(DELAY / 1000.0)
-        output = worker.outqueue.get(timeout=60.0)
-
-    if output.error is not None or output.status != JobStatus.COMPLETE:
-        raise WorkerException(f"Error occurred while processing mesh: {output.error}")
-    return output
+                job.status = JobStatus.ERROR
+            self.outqueue.put(job)

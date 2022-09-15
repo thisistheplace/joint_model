@@ -14,8 +14,11 @@ class JobStatus(str, Enum):
 
 
 class Job:
-    def __init__(self, model: Model):
-        self._id = str(uuid.uuid4())
+    def __init__(self, model: Model, id: str | None = None):
+        if id is not None:
+            self._id = str(uuid.uuid4())
+        else:
+            self._id = id
         self._data = model
         self._mesh = None
         self._error = None
