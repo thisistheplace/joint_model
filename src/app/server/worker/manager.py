@@ -1,4 +1,5 @@
 """Methods for accessing job data"""
+import threading
 from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 
@@ -12,7 +13,7 @@ from app.server.worker.jobs.interfaces import MeshJob
 
 from .runner import RunJob
 from ..singleton import Singleton
-from ..cache.cache import Cache, store_job, get_job
+from ..cache.cache import Cache,  get_job
 from ...interfaces import Model
 from ...interfaces.examples.joints import EXAMPLE_MODELS
 
@@ -21,7 +22,7 @@ class Manager(Singleton):
     """Submit and monitor jobs"""
     def __init__(self):
         self._cache = Cache() # singleton
-        self._runners = [] # hold runner threads
+        self._runners = {} # hold runner threads
         self._worker = Worker() # singleton
 
     @property
@@ -37,33 +38,28 @@ class Manager(Singleton):
             self.worker.start()
 
     def stop(self):
-        for runner in self.runners:
+        for runner in self.runners.values():
             runner.stop()
-        self._runners = []
+        self._runners = {}
         self.worker.stop()
 
     def submit_job(self, model: Model) -> MeshJob:
         job: Job = Job(model)
-        self._runners.append(RunJob(self.worker, job, True))
+        self._runners[job.id] = RunJob(self.worker, job, True)
         return MeshJob(
             id=job.id,
             status=JobStatus.SUBMITTED
         )
 
     def monitor_job(self, id: str) -> MeshJob:
-        try:
-            return MeshJob(
-                id=id,
-                status=get_job(id)
-            )
-        except KeyError:
-            return MeshJob(
-                id=id,
-                status=JobStatus.NOTFOUND
-            )
+        return MeshJob(
+            id=id,
+            status=get_job(id)
+        )
 
     def get_job(self, id: str) -> StreamingResponse:
         job = get_job(id)
+        print(str(job))
         if job.status == JobStatus.ERROR:
             raise HTTPException(status_code=500, detail=f"Error while generating mesh: {job.error}")
         elif job.status == JobStatus.COMPLETE:
@@ -79,3 +75,12 @@ class Manager(Singleton):
                 raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
         else:
             raise HTTPException(status_code=500, detail=f"Job is not complete, current status is: {job.status}")
+    
+    def wait_for_job(self, id: str) -> threading.Condition:
+        try:
+            with self.runners[id].notification:
+                print("waiting")
+                self.runners[id].notification.wait()
+                print("waited!")
+        except KeyError:
+            raise KeyError(f"Job with id {id.split('-')[0]} is not running")

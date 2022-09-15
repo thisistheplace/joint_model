@@ -11,8 +11,8 @@ class Cache(Singleton):
         self._data: dict[str, Job] = {}
         self._lock = threading.RLock()
     
-    @contextmanager
     @property
+    @contextmanager
     def store(self) -> dict[str, Job]:
         with self._lock:
             yield self._data

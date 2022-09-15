@@ -3,6 +3,7 @@ import time
 
 from .jobs.job import Job, JobStatus
 from ...converters.model import convert_model_to_dash_vtk
+from ..singleton import SingletonProcess
 
 SENTINEL = "STOP"
 DELAY = 5  # ms
@@ -10,20 +11,6 @@ DELAY = 5  # ms
 
 class WorkerException(Exception):
     pass
-
-
-class SingletonProcess(Process):
-    def __new__(cls, *args, **kwds):
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = object.__new__(cls)
-        it.init(*args, **kwds)
-        return it
-
-    def init(self, *args, **kwds):
-        super(SingletonProcess, self).__init__()
-
 
 class Worker(SingletonProcess):
     def __init__(self):

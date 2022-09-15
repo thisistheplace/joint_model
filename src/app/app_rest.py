@@ -5,7 +5,7 @@ import os
 
 from .constants import VIEWER_URL, RESTAPI_URL
 from .server.routers import home, meshing
-from .server.worker.worker import Worker
+from .server.worker.manager import Manager
 
 # check environment variable
 if VIEWER_URL not in os.environ:
@@ -18,11 +18,10 @@ app.include_router(home.router)
 app.include_router(meshing.router)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# setup workers
-worker = Worker()
-worker.start()
-
+# setup manager with workers
+manager = Manager()
+manager.start()
 
 @app.on_event("shutdown")
 def shutdown_event():
-    worker.stop()
+    manager.stop()

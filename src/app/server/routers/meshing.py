@@ -1,8 +1,5 @@
 from fastapi import APIRouter, HTTPException
 
-from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.server.worker.worker import Worker
-
 from ..worker.jobs.interfaces import MeshJob
 from ..worker.manager import Manager
 

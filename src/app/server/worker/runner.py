@@ -9,20 +9,25 @@ from ..cache.cache import store_job, get_job
 class RunJob(threading.Thread):
     def __init__(self, worker: Worker, job: Job, run: bool = False):
         super(RunJob, self).__init__()
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
         self._worker = worker
         self._id = job.id
+        self._notify = threading.Condition()
         store_job(job)
         if run:
             self.start()
 
     @property
-    def job(self):
+    def job(self) -> Job:
         """Copy of job in store"""
         return get_job(self._id)
 
+    @property
+    def notification(self) -> threading.Condition:
+        return self._notify
+
     def stop(self):
-        self._stop.set()
+        self._stop_event.set()
         while self.is_alive():
             pass
 
@@ -38,12 +43,17 @@ class RunJob(threading.Thread):
         store_job(job)
 
         while True:
-            if self._stop.is_set():
+            if self._stop_event.is_set():
                 return
             try:
                 output = self._worker.outqueue.get()
                 if output.id == self._id:
+                    print("completed job!")
                     store_job(job)
+                    with self.notification:
+                        print("notifying")
+                        self.notification.notify_all()
+                        print("notified")
                     return
                 self._worker.outqueue.put(job)
             except queue.Empty:

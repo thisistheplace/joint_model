@@ -15,7 +15,7 @@ class JobStatus(str, Enum):
 
 class Job:
     def __init__(self, model: Model, id: str | None = None):
-        if id is not None:
+        if id is None:
             self._id = str(uuid.uuid4())
         else:
             self._id = id
@@ -56,3 +56,6 @@ class Job:
     @status.setter
     def status(self, value: JobStatus):
         self._status = value
+
+    def __str__(self):
+        return f"id: {self.id}\nstatus: {self.status}"
