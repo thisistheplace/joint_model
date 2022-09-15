@@ -3,7 +3,7 @@ import numpy as np
 
 from ...interfaces import *
 from ..geometry.intersections import intersections
-from ..geometry.points import ellipse_quadrant_points
+from ..geometry.ellipse import ellipse_quadrant_points
 
 FACTORY = gmsh.model.occ
 

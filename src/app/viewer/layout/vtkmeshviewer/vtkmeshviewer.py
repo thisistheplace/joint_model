@@ -118,21 +118,23 @@ class VtkMeshViewerAIO(html.Div):
         Output(ids.getmeshtoast(MATCH), "icon"),
         Output(ids.getmeshtoast(MATCH), "duration"),
         Input(ids.jobcomplete(MATCH), "data"),
+        State(ids.jsonstore(MATCH), "data"),
         prevent_initial_callback=True
     )
-    def _get_mesh(job: dict):
+    def _get_mesh(job: dict, json_str: str):
         if job is None:
             return no_update
         job = MeshJob(**job)
         if job.status in [JobStatus.COMPLETE, JobStatus.ERROR]:
             try:
                 json_mesh = asyncio.run(get_mesh(job))
+                json_model = validate_and_convert_json(json_str, Model)
                 return (
                     dash_vtk.GeometryRepresentation(
                         [dash_vtk.GeometryRepresentation(vtk_to_dash(json_mesh))]
                     ),
                     True,
-                    "Mesh generated successfully",
+                    f"Meshing successful: {json_model.name} ({job.id.split('-')[0]})",
                     "success",
                     4000
                 )
@@ -179,7 +181,7 @@ class VtkMeshViewerAIO(html.Div):
         try:
             json_model = validate_and_convert_json(json_str, Model)
             job: MeshJob = asyncio.run(submit_job(json_model))
-            return job.dict(), True, f"Submitted meshing job: {job.id.split('-')[0]}", "success", 4000
+            return job.dict(), True, f"Submitted meshing job: {json_model.name} ({job.id.split('-')[0]})", "success", 4000
         except Exception as e:
             return no_update, True, str(e), "danger", -1
 

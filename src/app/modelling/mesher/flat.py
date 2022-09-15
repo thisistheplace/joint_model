@@ -5,7 +5,7 @@ import numpy as np
 
 from app.interfaces.numpy.model import NpTubular
 
-from ..geometry.points import line_points
+from ..geometry.line import line_points
 
 from ...interfaces.geometry import *
 from ...interfaces.mapper import map_to_np

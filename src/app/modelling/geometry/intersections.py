@@ -41,7 +41,7 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
     intersects = {}  # key: slave.name, value: NpPoint3D of intersection
     for slave in slaves:
         # Get 2D point of intersection with the circle
-        intersect2D_array = circle_intersect(master, slave)
+        intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
 
         if len(intersect2D_array) == 0:
             raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
@@ -58,13 +58,20 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
         plane_point = np.array(
             [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
         )
-        intersect3D = plane_intersect(slave, plane_point)
+        p2 = deepcopy(plane_point)
+        p2[0] += 1.0
+        p3 = deepcopy(plane_point)
+        p3[2] += 1.0
+        plane: sympy.Plane = sympy.Plane(
+            sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
+        )
+        intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
         intersects[slave.name] = np.array(intersect3D, dtype=float)
 
     return intersects
 
 
-def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
+def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
     """Calculate 3D point where slave intersects plane
 
     Plane is in X/Z plane.
@@ -81,14 +88,7 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
     """
     # create tube projection plane at point of intersect on circle
     # plane is in X/Z system
-    p2 = deepcopy(point)
-    p2[0] += 1.0
-    p3 = deepcopy(point)
-    p3[2] += 1.0
-    plane: sympy.Plane = sympy.Plane(
-        sympy.Point3D(point), sympy.Point3D(p2), sympy.Point3D(p3)
-    )
-    line = get_sympy_line(point, tube.axis.vector.array, sympy.Line3D)
+    line = get_sympy_line(point, axis, sympy.Line3D)
     try:
         # only one intersect for a line and plane
         intersect = plane.intersection(line)[0]
@@ -97,11 +97,11 @@ def plane_intersect(tube: NpTubular, point: np.ndarray) -> np.ndarray:
         return np.array(intersect, dtype=float)
     except Exception as e:
         # Handle some specific exception here where an intersection is not found
-        msg = f"Could not find intersection point of tubular {tube.name} with plane.\nEncountered error:\n{e}"
+        msg = f"Could not find intersection point of tubular with plane.\nEncountered error:\n{e}"
         raise IntersectionError(msg)
 
 
-def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
+def circle_intersect(center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray) -> np.ndarray:
     """Calculate 2D point where slave intersects master tube
 
     2D plane is in X/Y plane
@@ -117,9 +117,9 @@ def circle_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         IntersectionError if the slave does not intersect the master
     """
     # Find intersection with circle in 2D plane
-    center = sympy.Point2D(master.axis.point.array[:2])
-    circle = sympy.Circle(center, master.diameter / 2.0)
-    line = get_sympy_line(slave.axis.point.array, slave.axis.vector.array, sympy.Line2D)
+    center = sympy.Point2D(center[:2])
+    circle = sympy.Circle(center, diameter / 2.0)
+    line = get_sympy_line(point, vector, sympy.Line2D)
     try:
         intersect = circle.intersection(line)
         return np.array(intersect, dtype=float)
