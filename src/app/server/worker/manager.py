@@ -56,7 +56,7 @@ class Manager(Singleton):
     def monitor_job(self, id: str) -> MeshJob:
         return MeshJob(
             id=id,
-            status=get_job(id)
+            status=get_job(id).status
         )
 
     def get_job(self, id: str) -> StreamingResponse:

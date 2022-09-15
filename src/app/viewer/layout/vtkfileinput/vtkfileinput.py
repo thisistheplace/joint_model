@@ -52,7 +52,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                         n_clicks=0,
                     ),
                     style={
-                        "z-index": "1000",
+                        "zIndex": "1000",
                         "position": "absolute",
                         "display": "block",
                         "padding": "10px",
@@ -76,7 +76,7 @@ class VtkFileInputAIO(VtkMeshViewerAIO):
                                     "top": "0px",
                                     "right": "0px",
                                     "padding": "20px",
-                                    "z-index": "1000",
+                                    "zIndex": "1000",
                                 },
                             ),
                             dbc.Accordion(

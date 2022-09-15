@@ -15,6 +15,14 @@ from ....interfaces.validation import validate_and_convert_json
 from ....server.worker.jobs.interfaces import MeshJob
 from ....server.worker.jobs.job import JobStatus
 
+LOADING_STYLE = {
+    "position": "absolute",
+    "zIndex": "10",
+    "height": "100vh",
+    "width": "100vw",
+    "display": "none",
+    "background": "white"
+}
 
 class VtkMeshViewerAIO(html.Div):
 
@@ -60,45 +68,41 @@ class VtkMeshViewerAIO(html.Div):
                         dbc.Spinner(
                             color="info",
                             spinner_style={
-                                "margin-top": "50vh",
-                                "margin-left": "50vw"
+                                "marginTop": "50vh",
+                                "marginLeft": "50vw"
                             }
                         )
                     ],
-                    style={
-                        "position": "absolute",
-                        "z-index": "10",
-                        "height": "100vh",
-                        "width": "100vw",
-                        "display": "none",
-                        "background": "white"
-                    }
+                    style=LOADING_STYLE
                 ),
                 html.Div(
-                    dash_vtk.View(
-                        id=self.ids.vtk(aio_id),
-                        background=[
-                            255,
-                            255,
-                            255,
-                        ],  # RGB array of floating point values between 0 and 1.
-                        # interactorSettings=[...], # Binding of mouse events to camera action (Rotate, Pan, Zoom...)
-                        cameraPosition=[
-                            0,
-                            5,
-                            0,
-                        ],  # Where the camera should be initially placed in 3D world
-                        cameraViewUp=[
-                            0,
-                            0,
-                            1,
-                        ],  # Vector to use as your view up for your initial camera
-                        cameraParallelProjection=False,  # Should we see our 3D work with perspective or flat with no depth perception
-                        triggerRender=0,  # Timestamp meant to trigger a render when different
-                        triggerResetCamera=0,  # Timestamp meant to trigger a reset camera when different
-                        # clickInfo,                    # Read-only property to retrieve picked representation id and picking information
-                        # hoverInfo                     # Read-only property to retrieve picked representation id and picking information
-                    ),
+                    id=self.ids.vtkholder(aio_id),
+                    children=[
+                        dash_vtk.View(
+                            id=self.ids.vtk(aio_id),
+                            background=[
+                                255,
+                                255,
+                                255,
+                            ],  # RGB array of floating point values between 0 and 1.
+                            # interactorSettings=[...], # Binding of mouse events to camera action (Rotate, Pan, Zoom...)
+                            cameraPosition=[
+                                0,
+                                5,
+                                0,
+                            ],  # Where the camera should be initially placed in 3D world
+                            cameraViewUp=[
+                                0,
+                                0,
+                                1,
+                            ],  # Vector to use as your view up for your initial camera
+                            cameraParallelProjection=False,  # Should we see our 3D work with perspective or flat with no depth perception
+                            triggerRender=0,  # Timestamp meant to trigger a render when different
+                            triggerResetCamera=0,  # Timestamp meant to trigger a reset camera when different
+                            # clickInfo,                    # Read-only property to retrieve picked representation id and picking information
+                            # hoverInfo                     # Read-only property to retrieve picked representation id and picking information
+                        ),
+                    ],
                     style={"height": "100vh", "width": "100vw"},
                 ),
             ],
@@ -112,6 +116,7 @@ class VtkMeshViewerAIO(html.Div):
         Output(ids.getmeshtoast(MATCH), "is_open"),
         Output(ids.getmeshtoast(MATCH), "children"),
         Output(ids.getmeshtoast(MATCH), "icon"),
+        Output(ids.getmeshtoast(MATCH), "duration"),
         Input(ids.jobcomplete(MATCH), "data"),
         prevent_initial_callback=True
     )
@@ -128,14 +133,15 @@ class VtkMeshViewerAIO(html.Div):
                     ),
                     True,
                     "Mesh generated successfully",
-                    "success"
+                    "success",
+                    4000
                 )
             except MeshApiHttpError as e:
-                return no_update, True, e.toast_message, "danger"
+                return no_update, True, e.toast_message, "danger", -1
             except Exception as e:
-                return no_update, True, str(e), "danger"
+                return no_update, True, str(e), "danger", -1
         if job.status == JobStatus.NOTFOUND:
-            return no_update, True, f"Job {job.id} could not be found, please try re-submitting", "danger"
+            return no_update, True, f"Job {job.id} could not be found, please try re-submitting", "danger", -1
         return no_update
 
     @callback(
@@ -163,6 +169,7 @@ class VtkMeshViewerAIO(html.Div):
         Output(ids.submittoast(MATCH), "is_open"),
         Output(ids.submittoast(MATCH), "children"),
         Output(ids.submittoast(MATCH), "icon"),
+        Output(ids.submittoast(MATCH), "duration"),
         Input(ids.jsonstore(MATCH), "data"),
         prevent_initial_callback=True,
     )
@@ -172,9 +179,9 @@ class VtkMeshViewerAIO(html.Div):
         try:
             json_model = validate_and_convert_json(json_str, Model)
             job: MeshJob = asyncio.run(submit_job(json_model))
-            return job.dict(), True, f"Submitted meshing job: {job.id.split('-')[0]}", "success"
+            return job.dict(), True, f"Submitted meshing job: {job.id.split('-')[0]}", "success", 4000
         except Exception as e:
-            return no_update, True, str(e), "danger"
+            return no_update, True, str(e), "danger", -1
 
     @callback(
         Output(ids.interval(MATCH), "max_intervals"),
@@ -189,8 +196,10 @@ class VtkMeshViewerAIO(html.Div):
             return no_update
         job = MeshJob(**job)
         if job.status in [JobStatus.COMPLETE, JobStatus.ERROR, JobStatus.NOTFOUND]:
-            return 0, {"display": "none"}, job.dict()
+            LOADING_STYLE["display"] = "none"
+            return 0, LOADING_STYLE, job.dict()
         else:
             if state == -1:
                 return no_update
-            return -1, {"display": "block"}, no_update
+            LOADING_STYLE["display"] = "block"
+            return -1, LOADING_STYLE, no_update

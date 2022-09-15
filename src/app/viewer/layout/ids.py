@@ -90,6 +90,11 @@ class Ids:
         "subcomponent": "vtk",
         "aio_id": aio_id,
     }
+    vtkholder = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "vtkholder",
+        "aio_id": aio_id,
+    }
     submittoast = lambda aio_id: {
         "component": "VtkMeshViewerAIO",
         "subcomponent": "submittoast",
