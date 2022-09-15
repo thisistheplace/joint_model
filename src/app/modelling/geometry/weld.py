@@ -2,6 +2,7 @@ from copy import deepcopy
 import math
 from math import cos, sin, sqrt
 import sympy
+from typing import Generator
 
 from .vectors import angle_between_vectors
 from .intersections import plane_intersect, circle_intersect, IntersectionError
@@ -22,12 +23,12 @@ def z(r1: float, r2: float, phi: float, pheta: float) -> float:
             sin(phi)
 
 
-def get_weld_intersect_points(master: NpTubular, slave: NpTubular):
-
+def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[np.ndarray, np.ndarray, None]:
     for degrees in range(0, 361, 10):
         angle = degrees * math.pi / 360
 
-        # calculate size of 
+        # calculate new vector and point
+        
 
         # Get 2D point of intersection with the circle
         intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
@@ -55,4 +56,4 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular):
             sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
         )
         intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
-        # intersects[slave.name] = np.array(intersect3D, dtype=float)
+        yield np.array(intersect3D, dtype=float)
