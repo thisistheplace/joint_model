@@ -90,9 +90,24 @@ class Ids:
         "subcomponent": "vtk",
         "aio_id": aio_id,
     }
-    requesttoast = lambda aio_id: {
+    vtkholder = lambda aio_id: {
         "component": "VtkMeshViewerAIO",
-        "subcomponent": "requesttoast",
+        "subcomponent": "vtkholder",
+        "aio_id": aio_id,
+    }
+    submittoast = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "submittoast",
+        "aio_id": aio_id,
+    }
+    monitortoast = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "monitortoast",
+        "aio_id": aio_id,
+    }
+    getmeshtoast = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "getmeshtoast",
         "aio_id": aio_id,
     }
     loading = lambda aio_id: {
@@ -108,5 +123,20 @@ class Ids:
     interval = lambda aio_id: {
         "component": "VtkMeshViewerAIO",
         "subcomponent": "interval",
+        "aio_id": aio_id,
+    }
+    jobstore = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "jobstore",
+        "aio_id": aio_id,
+    }
+    jobstatus = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "jobstatus",
+        "aio_id": aio_id,
+    }
+    jobcomplete = lambda aio_id: {
+        "component": "VtkMeshViewerAIO",
+        "subcomponent": "jobcomplete",
         "aio_id": aio_id,
     }

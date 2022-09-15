@@ -1,6 +1,19 @@
 from pydantic import BaseModel
 
-from .geometry import Joint
+from .geometry import Axis3D, Point3D
+
+
+class Tubular(BaseModel):
+    name: str = ...
+    axis: Axis3D = ...
+    diameter: float = ...
+
+
+class Joint(BaseModel):
+    name: str = ...
+    master: Tubular = ...
+    slaves: list[Tubular] = ...
+    origin: Point3D | None = None
 
 
 class Model(BaseModel):

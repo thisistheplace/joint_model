@@ -1,20 +1,19 @@
 import gmsh
-import math
 
 from app.interfaces import Tubular
 
-from .vectors import angle_between
+from ..geometry.vectors import angle_between_vectors
 from ...interfaces.geometry import *
 
 FACTORY = gmsh.model.occ
 
 
 def rotatexy(dimTags: list[tuple[int, int]], origin: Point3D, vector: Vector3D):
-    xangle = angle_between([0, 0, 1], [0, vector.y, vector.z])
+    xangle = angle_between_vectors([0, 0, 1], [0, vector.y, vector.z])
     FACTORY.rotate(dimTags, origin.x, origin.y, origin.z, 1, 0, 0, xangle)
     FACTORY.synchronize()
 
-    yangle = angle_between([0, 0, 1], [vector.x, 0, vector.z])
+    yangle = angle_between_vectors([0, 0, 1], [vector.x, 0, vector.z])
     FACTORY.rotate(dimTags, origin.x, origin.y, origin.z, 0, 1, 0, yangle)
     FACTORY.synchronize()
 

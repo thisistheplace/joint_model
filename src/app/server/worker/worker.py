@@ -1,8 +1,9 @@
-from multiprocessing import Process, Queue, Event, RLock
-import time
+from multiprocessing import Queue, Event, RLock
+import queue
 
-from .job import Job, JobStatus
+from .jobs.job import Job, JobStatus
 from ...converters.model import convert_model_to_dash_vtk
+from ..singleton import SingletonProcess
 
 SENTINEL = "STOP"
 DELAY = 5  # ms
@@ -11,27 +12,14 @@ DELAY = 5  # ms
 class WorkerException(Exception):
     pass
 
-
-class SingletonProcess(Process):
-    def __new__(cls, *args, **kwds):
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = object.__new__(cls)
-        it.init(*args, **kwds)
-        return it
-
-    def init(self, *args, **kwds):
-        super(SingletonProcess, self).__init__()
-
-
 class Worker(SingletonProcess):
     def __init__(self):
         super(Worker, self).__init__()
-        self._inqueue = Queue()
-        self._outqueue = Queue()
-        self._stop_event = Event()
-        self._lock = RLock()
+        if not hasattr(self, "_inqueue"):
+            self._inqueue = Queue()
+            self._outqueue = Queue()
+            self._stop_event = Event()
+            self._lock = RLock()
 
     @property
     def inqueue(self):
@@ -41,9 +29,18 @@ class Worker(SingletonProcess):
     def outqueue(self):
         return self._outqueue
 
+    def submit(self, job: Job) -> Job:
+        with self._lock:
+            job.status = JobStatus.SUBMITTED
+            self.inqueue.put(job)
+            return job
+
     def start(self, *args, **kwargs):
         if self.is_alive():
-            raise WorkerException("Worker is currently running, please call self.stop() before starting")
+            raise WorkerException(
+                "Worker is currently running, please call self.stop() before starting"
+            )
+        self._stop_event.clear()
         super(Worker, self).start(*args, **kwargs)
 
     def stop(self):
@@ -51,13 +48,19 @@ class Worker(SingletonProcess):
             if not self._stop_event.is_set():
                 self._stop_event.set()
             # empty inqueue
-            while self.inqueue.qsize() > 0:
-                self.inqueue.get_nowait()
+            try:
+                while self.inqueue.qsize() > 0:
+                    self.inqueue.get_nowait()
+            except queue.Empty:
+                pass
             self.inqueue.put(SENTINEL)
             if self.is_alive():
                 self.join()
-            while self.is_alive():
-                time.sleep(DELAY / 1000)
+            try:
+                while self.outqueue.qsize() > 0:
+                    self.outqueue.get_nowait()
+            except queue.Empty:
+                pass
             self.close()
             del self
 
@@ -80,34 +83,13 @@ class Worker(SingletonProcess):
                 # skip since this isn't a valid object
                 continue
 
-            elif job.status != JobStatus.PENDING:
+            elif job.status != JobStatus.SUBMITTED:
                 continue
-
-            # Mesh object if pending
-            job.status = JobStatus.RUNNING
 
             try:
                 job.mesh = convert_model_to_dash_vtk(job.data)
                 job.status = JobStatus.COMPLETE
             except Exception as e:
                 job.error = str(e)
-
+                job.status = JobStatus.ERROR
             self.outqueue.put(job)
-
-
-def run_job(worker: Worker, job: Job):
-    if not worker.is_alive():
-        raise WorkerException(
-            "Worker performing gmsh operations is not running, please contact the administrator"
-        )
-
-    worker.inqueue.put(job)
-
-    output = worker.outqueue.get(timeout=60.0)
-    while output.id != job.id:
-        time.sleep(DELAY / 1000.0)
-        output = worker.outqueue.get(timeout=60.0)
-
-    if output.error is not None or output.status != JobStatus.COMPLETE:
-        raise WorkerException(f"Error occurred while processing mesh: {output.error}")
-    return output

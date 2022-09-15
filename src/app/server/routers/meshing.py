@@ -1,37 +1,13 @@
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 
-import io
-import json
-
-from app.converters.encoder import NpEncoder
-from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.server.worker.worker import run_job, Worker
-from app.server.worker.job import Job
+from ..worker.jobs.interfaces import MeshJob
+from ..worker.manager import Manager
 
 from ...interfaces import Model
 from ...interfaces.examples.joints import EXAMPLE_MODELS
 
 router = APIRouter()
-# get worker singleton
-worker = Worker()
-
-
-def do_meshing(model: Model) -> StreamingResponse:
-    job = Job(model)
-    try:
-        job = run_job(worker, job)
-
-        def iterfile():
-            with io.StringIO() as file_like:
-                json.dump(job.mesh.dict(), file_like, cls=NpEncoder)
-                file_like.seek(0)
-                yield from file_like
-
-        return StreamingResponse(iterfile(), media_type="application/json")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error while generating mesh: {e}")
-
+manager = Manager()
 
 @router.get("/examples/{modelname}")
 def mesh_example(modelname: str):
@@ -39,10 +15,17 @@ def mesh_example(modelname: str):
         raise HTTPException(
             status_code=404, detail=f"Joint model {modelname} not found"
         )
-    return do_meshing(EXAMPLE_MODELS[modelname])
+    return manager.submit_job(EXAMPLE_MODELS[modelname])
 
-
-@router.post("/meshmodel")
-def mesh_joint_model(model: Model):
+@router.post("/meshmodel/submit", response_model=MeshJob)
+def submit_model_to_mesher(model: Model):
     # do some validation here!
-    return do_meshing(model)
+    return manager.submit_job(model)
+
+@router.get("/meshmodel/monitor/{job_id}", response_model=MeshJob)
+def get_job_status(job_id: str):
+    return manager.monitor_job(job_id)
+
+@router.get("/meshmodel/mesh/{job_id}")
+def get_model_from_mesher(job_id: str):
+    return manager.get_job(job_id)

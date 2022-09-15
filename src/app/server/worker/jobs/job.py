@@ -1,19 +1,24 @@
 from enum import Enum
 import uuid
 
-from ...interfaces import DashVtkModel, Model
+from ....interfaces import DashVtkModel, Model
 
 
-class JobStatus(Enum):
-    PENDING = 1
-    RUNNING = 2
-    COMPLETE = 3
-    ERROR = 4
+class JobStatus(str, Enum):
+    PENDING = "PENDING"
+    SUBMITTED = "SUBMITTED"
+    RUNNING = "RUNNING"
+    COMPLETE = "COMPLETE"
+    ERROR = "ERROR"
+    NOTFOUND = "NOTFOUND"
 
 
 class Job:
-    def __init__(self, model: Model):
-        self._id = str(uuid.uuid4())
+    def __init__(self, model: Model, id: str | None = None):
+        if id is None:
+            self._id = str(uuid.uuid4())
+        else:
+            self._id = id
         self._data = model
         self._mesh = None
         self._error = None
@@ -51,3 +56,6 @@ class Job:
     @status.setter
     def status(self, value: JobStatus):
         self._status = value
+
+    def __str__(self):
+        return f"id: {self.id}\nstatus: {self.status}"

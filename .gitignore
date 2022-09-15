@@ -131,3 +131,7 @@ dmypy.json
 
 # Dash stuff
 .DS_Store
+
+# Model files
+*.json
+*.vtk

@@ -6,14 +6,14 @@ EXAMPLE_MODELS = {
         name="TJoint",
         joint=Joint(
             name="TJoint",
-            tubes=[
-                Tubular(
+            master=Tubular(
                     name="Vertical",
                     axis=Axis3D(
                         point=Point3D(x=0, y=0, z=0), vector=Vector3D(x=0, y=0, z=5)
                     ),
                     diameter=0.5,
                 ),
+            slaves=[
                 Tubular(
                     name="Horizontal",
                     axis=Axis3D(
@@ -28,14 +28,14 @@ EXAMPLE_MODELS = {
         name="KJoint",
         joint=Joint(
             name="KJoint",
-            tubes=[
-                Tubular(
+            master=Tubular(
                     name="Chord",
                     axis=Axis3D(
                         point=Point3D(x=0, y=0, z=0), vector=Vector3D(x=0, y=0, z=5)
                     ),
                     diameter=0.6,
                 ),
+            slaves=[
                 Tubular(
                     name="Brace1",
                     axis=Axis3D(
