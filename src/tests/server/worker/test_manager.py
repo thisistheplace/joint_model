@@ -33,11 +33,10 @@ class TestManagerSingleton:
 
 class TestManagerRunsJob:
     def test_manager_runs_job(self, manager: Manager):
-        job = manager.submit_job(EXAMPLE_MODELS["TJoint"])
-        manager.wait_for_job(job.id)
-        jobout = manager.get_job(job.id)
-        assert jobout.status == JobStatus.RUNNING
-        assert jobout.error is None
+        job_in = manager.submit_job(EXAMPLE_MODELS["TJoint"])
+        job_out = manager.wait_for_job(job_in.id)
+        assert job_out.status == JobStatus.COMPLETE
+        assert job_out.error is None
 
     def test_manager_raises_error(self, manager):
         pass

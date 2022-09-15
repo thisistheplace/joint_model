@@ -77,9 +77,8 @@ class Manager(Singleton):
         else:
             raise HTTPException(status_code=500, detail=f"Job is not complete, current status is: {job.status}")
     
-    def wait_for_job(self, id: str) -> threading.Condition:
+    def wait_for_job(self, id: str) -> Job:
         try:
-            with self.runners[id].notification:
-                self.runners[id].notification.wait()
+            return self.runners[id].wait()
         except KeyError:
             raise KeyError(f"Job with id {id.split('-')[0]} is not running")

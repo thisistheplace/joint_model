@@ -1,5 +1,5 @@
-from multiprocessing import Process, Queue, Event, RLock
-import time
+from multiprocessing import Queue, Event, RLock
+import queue
 
 from .jobs.job import Job, JobStatus
 from ...converters.model import convert_model_to_dash_vtk
@@ -40,6 +40,7 @@ class Worker(SingletonProcess):
             raise WorkerException(
                 "Worker is currently running, please call self.stop() before starting"
             )
+        self._stop_event.clear()
         super(Worker, self).start(*args, **kwargs)
 
     def stop(self):
@@ -47,15 +48,19 @@ class Worker(SingletonProcess):
             if not self._stop_event.is_set():
                 self._stop_event.set()
             # empty inqueue
-            while self.inqueue.qsize() > 0:
-                self.inqueue.get_nowait()
+            try:
+                while self.inqueue.qsize() > 0:
+                    self.inqueue.get_nowait()
+            except queue.Empty:
+                pass
             self.inqueue.put(SENTINEL)
             if self.is_alive():
                 self.join()
-            while self.is_alive():
-                time.sleep(DELAY / 1000)
-            while self.outqueue.qsize() > 0:
-                self.outqueue.get_nowait()
+            try:
+                while self.outqueue.qsize() > 0:
+                    self.outqueue.get_nowait()
+            except queue.Empty:
+                pass
             self.close()
             del self
 

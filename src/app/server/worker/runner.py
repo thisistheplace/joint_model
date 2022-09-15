@@ -1,6 +1,5 @@
 import queue
 import threading
-import time
 
 from .jobs.job import Job
 from .worker import DELAY, Worker
@@ -26,10 +25,17 @@ class RunJob(threading.Thread):
     def notification(self) -> threading.Condition:
         return self._notify
 
+    def wait(self) -> Job:
+        with self.notification:
+            self.notification.wait(120)
+        return get_job(self.job.id)
+
     def stop(self):
         self._stop_event.set()
-        while self.is_alive():
-            pass
+        if self.is_alive():
+            self.join()
+        with self.notification:
+            self.notification.notify_all()
 
     def run(self):
         job = self.job
@@ -44,15 +50,16 @@ class RunJob(threading.Thread):
 
         while True:
             if self._stop_event.is_set():
-                return
+                break
             try:
+                # TODO: use nowait so we can interrupt runner at some point
                 output = self._worker.outqueue.get()
                 if output.id == self._id:
-                    store_job(job)
+                    store_job(output)
                     with self.notification:
                         self.notification.notify_all()
                     return
-                self._worker.outqueue.put(job)
+                self._worker.outqueue.put(output)
             except queue.Empty:
                 pass
-            time.sleep(DELAY / 1000.0)
+            # time.sleep(DELAY / 1000.0)
