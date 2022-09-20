@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "type": "docker-run",
+        "label": "docker-run: debug",
+        "dependsOn": ["docker-build"],
+        "dockerRun": {
+          "containerName": "jointrest",
+          "image": "jointrest:latest",
+          "env": {
+            "RESTAPI_URL": "http://127.0.0.1:8000",
+            "VIEWER_URL": "http://127.0.0.1:8050"
+          },
+          "volumes": [
+            {
+              "containerPath": "/app",
+              "localPath": "${workspaceFolder}"
+            }
+          ],
+          "ports": [
+            {
+              "containerPort": 8010,
+              "hostPort": 8010
+            }
+          ]
+        },
+        "python": {
+          "args": ["run", "--host", "0.0.0.0", "--port", "5000"],
+          "file": "/src/debug_meshing.py"
+        }
+      },
+      {
+        "label": "docker-build",
+        "type": "docker-build",
+        "dockerBuild": {
+          "context": "${workspaceFolder}",
+          "dockerfile": "${workspaceFolder}/Dockerfile-rest",
+          "tag": "jointrest:latest"
+        }
+      }
+    ]
+  }
+  

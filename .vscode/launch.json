@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "configurations": [
+        {
+        "name": "Debug Meshing App",
+        "type": "docker",
+        "request": "launch",
+
+        "preLaunchTask": "docker-run: debug",
+        "python": {
+            "pathMappings": [
+            {
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "/app"
+            }
+            ],
+        },
+        "dockerServerReadyAction": {
+            "action": "openExternally",
+            "pattern": "Running on (http?://\\S+|[0-9]+)",
+            "uriFormat": "%s://localhost:%s/"
+        }
+        }
+    ]
+}

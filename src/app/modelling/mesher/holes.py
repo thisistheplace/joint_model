@@ -13,7 +13,7 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
     lines = [
         FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])
     ]
-    return FACTORY.addSpline(lines)
+    return FACTORY.addCurveLoop(lines)
 
 def create_holes(master: NpTubular, slaves: list[NpTubular], surface: int, specs: MeshSpecs) -> dict[str, np.ndarray]:
     """Create holes in current mesh based on tubular intersections
