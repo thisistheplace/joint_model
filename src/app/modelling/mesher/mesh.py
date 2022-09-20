@@ -48,10 +48,10 @@ FACTORY = gmsh.model.occ
 # TODO: need to handle memory exceptions!!! Or try and predict memory usage!
 
 
-def mesh_master(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
+def mesh_master(tube: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     # return add_cylinder(tube)
-    return add_flat_tube(tube, specs)
+    return add_flat_tube(tube, slaves, specs)
 
 def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
@@ -60,11 +60,9 @@ def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
 
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {}
-    joint_mesh.update({joint.master.name: mesh_master(joint.master, specs)})
+    joint_mesh.update({joint.master.name: mesh_master(joint.master, joint.slaves, specs)})
     # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
-    specs = MeshSpecs(size=0.1)
-    create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], joint_mesh[joint.master.name][1], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
@@ -76,6 +74,9 @@ def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
 def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
+        # set messaging level to errors
+        gmsh.option.setNumber('General.Verbosity', 1) 
+
         meshed_tubes = mesh_joint(model.joint, specs)
 
         FACTORY.synchronize()

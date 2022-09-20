@@ -17,7 +17,7 @@ EXAMPLE_MODELS = {
                 Tubular(
                     name="Horizontal",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=3), vector=Vector3D(x=3, y=0, z=0)
+                        point=Point3D(x=0.25, y=0, z=3), vector=Vector3D(x=3, y=0, z=0)
                     ),
                     diameter=0.25,
                 ),

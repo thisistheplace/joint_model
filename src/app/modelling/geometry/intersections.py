@@ -170,10 +170,16 @@ def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     return point
 
 def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
+    print(circle)
+    print(f"point: {point}")
     seam = sympy.Point2D(circle.radius, 0.0)
     seg_vector = np.empty((3,))
     seg_vector[:2] = point[:2] - np.array(seam.coordinates)
     seg_vector[2] = 0.
+    print(f"seg vector: {seg_vector}")
     seg_length = np.linalg.norm(seg_vector)
+    print(f"seg length: {seg_length}")
     sub_angle = math.acos(seg_length / 2.0 / circle.radius)
-    return (math.pi / 2. - 2 * sub_angle) * np.sign(point[0])
+    print(f"sub angle: {sub_angle}")
+    print(f"sign {np.sign(point[1])}")
+    return np.sign(point[1]) * (math.pi - 2 * sub_angle)

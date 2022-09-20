@@ -6,6 +6,7 @@ import numpy as np
 from app.interfaces.numpy.model import NpTubular
 
 from ..geometry.line import line_points
+from .holes import hole_curve
 
 from ...interfaces.geometry import *
 from ...interfaces.mapper import map_to_np
@@ -15,11 +16,11 @@ from ...interfaces.mesh import *
 FACTORY = gmsh.model.occ
 
 # scipolate.Rbf()
-def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
+def add_flat_tube(master: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> list[int, int]:
     """Make a flat mesh out of a tubular
 
     Initially create it in the Y/Z plane where 1 is at
-    the tube.axis.point.
+    the master.axis.point.
 
         5-------4-------3
         |               |
@@ -33,7 +34,7 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     ------ x
 
     """
-    nptube: NpTubular = map_to_np(tube)
+    nptube: NpTubular = map_to_np(master)
     length = np.linalg.norm(nptube.axis.vector.array)
     circumference = math.pi * nptube.diameter
 
@@ -56,9 +57,6 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     pt6 = deepcopy(pt1)
     pt6[1] -= circumference / 2.0
 
-    print(f"Height: {length}")
-    print(f"Width: {circumference}")
-
     # closed loop
     # NOTE: point order may need to be clockwise!
     key_points = [pt1, pt2, pt3, pt4, pt5, pt6, pt1]
@@ -71,15 +69,23 @@ def add_flat_tube(tube: Tubular, specs: MeshSpecs) -> list[int, int]:
     lines = [
         FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])
     ]
-    curve = FACTORY.addCurveLoop(lines)
-    surface = FACTORY.addSurfaceFilling(curve)
+    perimeter = FACTORY.addCurveLoop(lines)
+
+    # get curves defining holes
+    holes = [hole_curve(master, slave) for slave in slaves]
+
+    surface = FACTORY.addPlaneSurface([perimeter])# + holes)
+
     FACTORY.synchronize()
+
+    for curve in holes:
+        gmsh.model.mesh.embed(1, [curve], 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
     for l in lines:
         FACTORY.remove([(1, l)])
-    FACTORY.remove([(1, curve)])
+    FACTORY.remove([(1, perimeter)])
     FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]

@@ -105,7 +105,6 @@ def ellipse_segment_angle(
             f"\tpoint: {np.array(point_found.coordinates, dtype=float)}\n" \
             f"\tangle: {solution.x}\n" \
             f"\tlength: {length}"
-        # print(f"Could not find point along tubular insect for arc length {length}")
         # TODO: maybe this should be a logged warning?
         raise GeometryException(msg)
     return solution.x
