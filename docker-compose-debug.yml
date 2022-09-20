@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+  debug:
+    container_name: jointdebug
+    environment:
+      - RESTAPI_URL=http://host.docker.internal:8000
+      - VIEWER_URL=http://host.docker.internal:8050
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-rest
+    expose:
+      - "8010"
+    ports:
+      - "8010:8010"
+    volumes:
+      - .:/app
