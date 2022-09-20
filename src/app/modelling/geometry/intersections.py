@@ -12,24 +12,25 @@ Process is:
 """
 from copy import deepcopy
 import math
+from multiprocessing.reduction import ACKNOWLEDGE
 import numpy as np
 import sympy
 from typing import Any
 
 from ...interfaces import *
-from .vectors import unit_vector, angle_between_vectors
+from .vectors import angle_between_vectors
 
 
 class IntersectionError(Exception):
     pass
 
 
-def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.ndarray]:
+def intersections(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Calculate 3D points where slaves intersect master
 
     Args:
-        master: 3D tubular with slave tubes may intersect
-        slaves: list of 3D tubulars which may intersect master
+        master: 3D tubular which slave tube may intersect
+        slave: 3D tubular which may intersect master
 
     Returns:
         Dict of np.ndarray where slaves intersect with master (key: NpTubular.name)
@@ -38,37 +39,34 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
         IntersectionError if any of the slaves don't intersect the master
     """
     # TODO: check that slave point doesn't intersect master axis!!!
-    intersects = {}  # key: slave.name, value: NpPoint3D of intersection
-    for slave in slaves:
-        # Get 2D point of intersection with the circle
-        intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
+    # Get 2D point of intersection with the circle
+    intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
 
-        if len(intersect2D_array) == 0:
-            raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
+    if len(intersect2D_array) == 0:
+        raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
 
-        # Use point to determine side of circle intersect to use
-        for intersect2D in intersect2D_array:
-            intersect_vector = intersect2D - master.axis.point.array[:2]
-            point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
-            angle2D = angle_between_vectors(intersect_vector, point_vector)
-            if angle2D <= math.pi / 2:
-                break
+    # Use point to determine side of circle intersect to use
+    for intersect2D in intersect2D_array:
+        intersect_vector = intersect2D - master.axis.point.array[:2]
+        point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
+        angle2D = angle_between_vectors(intersect_vector, point_vector)
+        if angle2D <= math.pi / 2:
+            break
 
-        # Determine intersection of vector with plane
-        plane_point = np.array(
-            [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
-        )
-        p2 = deepcopy(plane_point)
-        p2[0] += 1.0
-        p3 = deepcopy(plane_point)
-        p3[2] += 1.0
-        plane: sympy.Plane = sympy.Plane(
-            sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
-        )
-        intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
-        intersects[slave.name] = np.array(intersect3D, dtype=float)
+    # Determine intersection of vector with plane
+    plane_point = np.array(
+        [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
+    )
+    p2 = deepcopy(plane_point)
+    p2[0] += 1.0
+    p3 = deepcopy(plane_point)
+    p3[2] += 1.0
+    plane: sympy.Plane = sympy.Plane(
+        sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
+    )
+    intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
 
-    return intersects
+    return intersect3D
 
 
 def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
@@ -145,3 +143,37 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
         vector = vector * 2
 
     return line_type(point, vector)
+
+def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
+    """Get the intersection points of slaves on master if master was unfurled to a plane
+
+    Assumes circle can be constructed from X/Y coordinates. Plane is X/Z. Midpoint of tube
+    is aligned with Y axis (X local 2D circle axis).
+    
+    Args:
+        master: 3D tubular which slave tube may intersect
+        slaves: 3D tubular which may intersect master
+
+    Returns:
+        Dict of (point: np.ndarray) where point is coordinate slaves
+        intersect with master if tube is flattened (key: NpTubular.name)
+
+    Raises:
+        IntersectionError if any of the slaves don't intersect the master
+    """
+    # Get intersections on master surface
+    point = intersections(master, slave)
+    master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
+    angle = arc_angle_signed(master_circle, point)
+    # Adjust point by signed arc length
+    point[0] += master_circle.circumference * (angle / math.pi)
+    return point
+
+def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
+    seam = sympy.Point2D(circle.radius, 0.0)
+    seg_vector = np.empty((3,))
+    seg_vector[:2] = point[:2] - np.array(seam.coordinates)
+    seg_vector[2] = 0.
+    seg_length = np.linalg.norm(seg_vector)
+    sub_angle = math.acos(seg_length / 2.0 / circle.radius)
+    return (math.pi / 2. - 2 * sub_angle) * np.sign(point[0])

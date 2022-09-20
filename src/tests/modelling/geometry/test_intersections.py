@@ -45,53 +45,55 @@ class TestIntersections:
     """
 
     def test_align_point_with_pos_y(self, master: NpTubular, slave: NpTubular):
-        points = intersections(master, [slave])
-        assert np.allclose(points["slave"], np.array([0, 1, 0]))
+        point = intersections(master, slave)
+        assert np.allclose(point, np.array([0, 1, 0]))
 
     def test_align_point_with_neg_y(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array[1] = -1
-        points = intersections(master, [slave])
-        assert np.allclose(points["slave"], np.array([0, -1, 0]))
+        point = intersections(master, slave)
+        assert np.allclose(point, np.array([0, -1, 0]))
 
     def test_quad_1(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array = np.array([1, 1, 0])
         slave.axis.vector.array = np.array([1, 1, 0])
-        points = intersections(master, [slave])
+        point = intersections(master, slave)
         assert np.allclose(
-            points["slave"], np.array([math.cos(math.pi / 4), math.cos(math.pi / 4), 0])
+            point,
+            np.array([math.cos(math.pi / 4), math.cos(math.pi / 4), 0])
         )
 
     def test_quad_2(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array = np.array([-1, 1, 0])
         slave.axis.vector.array = np.array([-1, 1, 0])
-        points = intersections(master, [slave])
+        point = intersections(master, slave)
         assert np.allclose(
-            points["slave"],
+            point,
             np.array([-1 * math.cos(math.pi / 4), math.cos(math.pi / 4), 0]),
         )
 
     def test_quad_3(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array = np.array([-1, -1, 0])
         slave.axis.vector.array = np.array([-1, -1, 0])
-        points = intersections(master, [slave])
+        point = intersections(master, slave)
         assert np.allclose(
-            points["slave"],
+            point,
             np.array([-1 * math.cos(math.pi / 4), -1 * math.cos(math.pi / 4), 0]),
         )
 
     def test_quad_4(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array = np.array([1, -1, 0])
         slave.axis.vector.array = np.array([1, -1, 0])
-        points = intersections(master, [slave])
+        point = intersections(master, slave)
         assert np.allclose(
-            points["slave"],
+            point,
             np.array([math.cos(math.pi / 4), -1 * math.cos(math.pi / 4), 0]),
         )
 
     def test_quad_1_zshift(self, master: NpTubular, slave: NpTubular):
         slave.axis.point.array = np.array([1, 1, 4])
         slave.axis.vector.array = np.array([1, 1, 4])
-        points = intersections(master, [slave])
+        point = intersections(master, slave)
         assert np.allclose(
-            points["slave"], np.array([math.cos(math.pi / 4), math.cos(math.pi / 4), 4])
+            point,
+            np.array([math.cos(math.pi / 4), math.cos(math.pi / 4), 4])
         )
