@@ -139,11 +139,16 @@ class VtkMeshViewerAIO(html.Div):
                     4000
                 )
             except MeshApiHttpError as e:
-                return no_update, True, e.toast_message, "danger", -1
+                return no_update, True, e.toast_message, "danger", 10000
             except Exception as e:
-                return no_update, True, str(e), "danger", -1
+                msg = str(e)
+                if hasattr(e, "response"):
+                    msg = f"{e.response.reason}"
+                    if hasattr(e.response, "headers"):
+                        msg = f"{e.response.headers['toast']}"
+                return no_update, True, msg, "danger", 10000
         if job.status == JobStatus.NOTFOUND:
-            return no_update, True, f"Job {job.id} could not be found, please try re-submitting", "danger", -1
+            return no_update, True, f"Job {job.id} could not be found, please try re-submitting", "danger", 10000
         return no_update
 
     @callback(
@@ -183,7 +188,7 @@ class VtkMeshViewerAIO(html.Div):
             job: MeshJob = asyncio.run(submit_job(json_model))
             return job.dict(), True, f"Submitted meshing job: {json_model.name} ({job.id.split('-')[0]})", "success", 4000
         except Exception as e:
-            return no_update, True, str(e), "danger", -1
+            return no_update, True, str(e), "danger", 10000
 
     @callback(
         Output(ids.interval(MATCH), "max_intervals"),

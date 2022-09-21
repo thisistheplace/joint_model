@@ -90,6 +90,7 @@ class Worker(SingletonProcess):
                 job.mesh = convert_model_to_dash_vtk(job.data)
                 job.status = JobStatus.COMPLETE
             except Exception as e:
+                print(str(e))
                 job.error = str(e)
                 job.status = JobStatus.ERROR
             self.outqueue.put(job)

@@ -74,7 +74,7 @@ def add_flat_tube(master: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> l
     # get curves defining holes
     holes = [hole_curve(master, slave) for slave in slaves]
 
-    surface = FACTORY.addPlaneSurface([perimeter])# + holes)
+    surface = FACTORY.addPlaneSurface([perimeter] + holes)
 
     FACTORY.synchronize()
 

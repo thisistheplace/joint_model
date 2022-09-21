@@ -1,5 +1,6 @@
 import queue
 import threading
+import time
 
 from .jobs.job import Job
 from .worker import DELAY, Worker
@@ -53,7 +54,7 @@ class RunJob(threading.Thread):
                 break
             try:
                 # TODO: use nowait so we can interrupt runner at some point
-                output = self._worker.outqueue.get()
+                output = self._worker.outqueue.get_nowait()
                 if output.id == self._id:
                     store_job(output)
                     with self.notification:
@@ -62,4 +63,4 @@ class RunJob(threading.Thread):
                 self._worker.outqueue.put(output)
             except queue.Empty:
                 pass
-            # time.sleep(DELAY / 1000.0)
+            time.sleep(DELAY / 1000.0)
