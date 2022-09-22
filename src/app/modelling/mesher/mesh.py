@@ -34,7 +34,6 @@ from itertools import combinations
 
 from .cylinder import add_cylinder
 from .flat import add_flat_tube
-from .holes import create_holes
 
 from ...interfaces.geometry import *
 from ...interfaces.model import *

@@ -21,8 +21,8 @@ def add_flat_tube(
 ) -> list[int, int]:
     """Make a flat mesh out of a tubular
 
-    Initially create it in the Y/Z plane where 1 is at
-    the master.axis.point.
+    Initially create it in the X/Z plane where 1 is at
+    the master.axis.point + radius (in Y direction).
 
         5-------4-------3
         |               |
@@ -30,7 +30,7 @@ def add_flat_tube(
         |               |
         |               |
         6-------1-------2
-    y
+    Z
     |
     |
     ------ x
@@ -41,27 +41,31 @@ def add_flat_tube(
     circumference = math.pi * nptube.diameter
 
     pt1 = nptube.axis.point.array
+    pt1[1] = nptube.diameter / 2.0
 
     pt2 = deepcopy(pt1)
-    pt2[1] += circumference / 2.0
+    pt2[0] += circumference / 2.0
 
     pt3 = deepcopy(pt1)
-    pt3[1] += circumference / 2.0
+    pt3[0] += circumference / 2.0
     pt3[2] += length
 
     pt4 = deepcopy(pt1)
     pt4[2] += length
 
     pt5 = deepcopy(pt1)
-    pt5[1] -= circumference / 2.0
+    pt5[0] -= circumference / 2.0
     pt5[2] += length
 
     pt6 = deepcopy(pt1)
-    pt6[1] -= circumference / 2.0
+    pt6[0] -= circumference / 2.0
 
     # closed loop
     # NOTE: point order may need to be clockwise!
     key_points = [pt1, pt2, pt3, pt4, pt5, pt6, pt1]
+
+    for point in key_points:
+        print(point)
 
     line_of_points = list(
         line_points(key_points, interval=specs.interval, size=specs.size)

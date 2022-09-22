@@ -175,8 +175,10 @@ def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     point = intersections(master, slave)
     master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
     angle = arc_angle_signed(master_circle, point)
-    # Adjust point by signed arc length
+    # Adjust point X coordinate by signed arc length
     point[0] += master_circle.circumference * (angle / math.pi)
+    # Set y coordinate to 0.0
+    point[1] = 0.
     return point
 
 

@@ -30,3 +30,11 @@ def rotate(vector: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
     rotation_vector = angle * axis
     rotation = Rotation.from_rotvec(rotation_vector)
     return rotation.apply(vector)
+
+
+def unit_perp_vector(vector: np.ndarray) -> np.ndarray:
+    if vector[1] != 0.0 or vector[2] != 0.0:
+        temp = np.array([1.0, 0.0, 0.0])
+    else:
+        temp = np.array([0.0, 1.0, 0.0])
+    return unit_vector(np.cross(vector, temp))
