@@ -48,19 +48,25 @@ FACTORY = gmsh.model.occ
 # TODO: need to handle memory exceptions!!! Or try and predict memory usage!
 
 
-def mesh_master(tube: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> tuple[int, int]:
+def mesh_master(
+    tube: Tubular, slaves: list[Tubular], specs: MeshSpecs
+) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     # return add_cylinder(tube)
     return add_flat_tube(tube, slaves, specs)
+
 
 def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     return add_cylinder(tube)
     # return add_flat_tube(tube, specs)
 
+
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {}
-    joint_mesh.update({joint.master.name: mesh_master(joint.master, joint.slaves, specs)})
+    joint_mesh.update(
+        {joint.master.name: mesh_master(joint.master, joint.slaves, specs)}
+    )
     # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
     FACTORY.synchronize()
@@ -75,7 +81,7 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
         # set messaging level to errors
-        gmsh.option.setNumber('General.Verbosity', 1) 
+        gmsh.option.setNumber("General.Verbosity", 1)
 
         meshed_tubes = mesh_joint(model.joint, specs)
 
@@ -98,8 +104,8 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
                 # raise Exception("SHOULD BE AN INTERSECTION")
 
         FACTORY.synchronize()
-        gmsh.option.setNumber("Mesh.MeshSizeMax", 0.05)
-        gmsh.model.mesh.generate(3)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
+        gmsh.model.mesh.generate(2)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever
         # the ordering of their nodes) and assign them a unique tag. This identification

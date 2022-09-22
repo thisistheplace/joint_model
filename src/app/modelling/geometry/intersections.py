@@ -40,10 +40,17 @@ def intersections(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """
     # TODO: check that slave point doesn't intersect master axis!!!
     # Get 2D point of intersection with the circle
-    intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
+    intersect2D_array = circle_intersect(
+        master.axis.point.array,
+        master.diameter,
+        slave.axis.point.array,
+        slave.axis.vector.array,
+    )
 
     if len(intersect2D_array) == 0:
-        raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
+        raise IntersectionError(
+            f"No intersections found for {slave.name} on {master.name}"
+        )
 
     # Use point to determine side of circle intersect to use
     for intersect2D in intersect2D_array:
@@ -54,9 +61,7 @@ def intersections(master: NpTubular, slave: NpTubular) -> np.ndarray:
             break
 
     # Determine intersection of vector with plane
-    plane_point = np.array(
-        [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
-    )
+    plane_point = np.array([intersect2D[0], intersect2D[1], slave.axis.point.array[2]])
     p2 = deepcopy(plane_point)
     p2[0] += 1.0
     p3 = deepcopy(plane_point)
@@ -69,7 +74,9 @@ def intersections(master: NpTubular, slave: NpTubular) -> np.ndarray:
     return intersect3D
 
 
-def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
+def plane_intersect(
+    axis: np.ndarray, point: np.ndarray, plane: sympy.Plane
+) -> np.ndarray:
     """Calculate 3D point where slave intersects plane
 
     Plane is in X/Z plane.
@@ -99,7 +106,9 @@ def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> 
         raise IntersectionError(msg)
 
 
-def circle_intersect(center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray) -> np.ndarray:
+def circle_intersect(
+    center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray
+) -> np.ndarray:
     """Calculate 2D point where slave intersects master tube
 
     2D plane is in X/Y plane
@@ -144,12 +153,13 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
 
     return line_type(point, vector)
 
+
 def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Get the intersection points of slaves on master if master was unfurled to a plane
 
     Assumes circle can be constructed from X/Y coordinates. Plane is X/Z. Midpoint of tube
     is aligned with Y axis (X local 2D circle axis).
-    
+
     Args:
         master: 3D tubular which slave tube may intersect
         slaves: 3D tubular which may intersect master
@@ -169,17 +179,14 @@ def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     point[0] += master_circle.circumference * (angle / math.pi)
     return point
 
+
 def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
-    print(circle)
+    """0 rads is aligned with X axis of circle"""
     print(f"point: {point}")
     seam = sympy.Point2D(circle.radius, 0.0)
     seg_vector = np.empty((3,))
     seg_vector[:2] = point[:2] - np.array(seam.coordinates)
-    seg_vector[2] = 0.
-    print(f"seg vector: {seg_vector}")
+    seg_vector[2] = 0.0
     seg_length = np.linalg.norm(seg_vector)
-    print(f"seg length: {seg_length}")
     sub_angle = math.acos(seg_length / 2.0 / circle.radius)
-    print(f"sub angle: {sub_angle}")
-    print(f"sign {np.sign(point[1])}")
     return np.sign(point[1]) * (math.pi - 2 * sub_angle)

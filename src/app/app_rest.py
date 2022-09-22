@@ -22,6 +22,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 manager = Manager()
 manager.start()
 
+
 @app.on_event("shutdown")
 def shutdown_event():
     manager.stop()

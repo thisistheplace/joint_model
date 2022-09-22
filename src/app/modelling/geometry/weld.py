@@ -10,33 +10,45 @@ from ...interfaces import *
 
 # TODO: look into https://mathcurve.com/courbes2d.gb/alain/alain.shtml
 
+
 def x(r1: float, r2: float, pheta: float) -> float:
-    return -1 * \
-        sqrt(-1 * (r2 ** 2) + (r2 ** 2) * (cos(pheta) ** 2)+ (r1 ** 2))
+    return -1 * sqrt(-1 * (r2**2) + (r2**2) * (cos(pheta) ** 2) + (r1**2))
+
 
 def y(r2: float, pheta: float) -> float:
     return r2 * sin(pheta)
 
+
 def z(r1: float, r2: float, phi: float, pheta: float) -> float:
-    return -1 * \
-        (r2 * cos(pheta) - cos(phi) * sqrt(-1 * (r2 ** 2) + (r2 ** 2) * (cos(pheta) ** 2)+ (r1 ** 2))) / \
-            sin(phi)
+    return (
+        -1
+        * (
+            r2 * cos(pheta)
+            - cos(phi)
+            * sqrt(-1 * (r2**2) + (r2**2) * (cos(pheta) ** 2) + (r1**2))
+        )
+        / sin(phi)
+    )
+
 
 def unit_perp_vector(vector: np.ndarray) -> np.ndarray:
     if vector[1] != 0.0 or vector[2] != 0.0:
-        temp = np.array([1., 0., 0.])
+        temp = np.array([1.0, 0.0, 0.0])
     else:
-        temp = np.array([0., 1., 0.])
+        temp = np.array([0.0, 1.0, 0.0])
     return unit_vector(np.cross(vector, temp))
 
-def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[np.ndarray, np.ndarray, None]:
+
+def get_weld_intersect_points(
+    master: NpTubular, slave: NpTubular
+) -> Generator[np.ndarray, np.ndarray, None]:
     """Y/Z plane"""
     perp = unit_perp_vector(slave.axis.vector.array)
     radius_point = flat_tube_intersect(master, slave)
-    radius_point[0] = master.diameter / 2.
+    radius_point[0] = master.diameter / 2.0
     # set x coordinate to 0
     plane_point = deepcopy(radius_point)
-    plane_point[0] = 0.
+    plane_point[0] = 0.0
     p2 = deepcopy(plane_point)
     p2[1] += 1.0
     p3 = deepcopy(plane_point)
@@ -48,11 +60,13 @@ def get_weld_intersect_points(master: NpTubular, slave: NpTubular) -> Generator[
     # Adjust slave vector angle by arc angle (rotate about Z axis)
     circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
     arc_angle = arc_angle_signed(circle, radius_point)
-    slave_vector = rotate(slave.axis.vector.array, np.array([0., 0., 1.]), arc_angle)
+    slave_vector = rotate(slave.axis.vector.array, np.array([0.0, 0.0, 1.0]), arc_angle)
 
     def calc_angle(angle):
         # calculate new vector and point
-        rotated_point = plane_point + rotate(perp * slave.diameter / 2., slave_vector, angle / 3.)
+        rotated_point = plane_point + rotate(
+            perp * slave.diameter / 2.0, slave_vector, angle / 3.0
+        )
         print(angle, rotated_point)
         intersect3D = plane_intersect(slave_vector, rotated_point, plane)
         intersect = np.array(intersect3D, dtype=float)

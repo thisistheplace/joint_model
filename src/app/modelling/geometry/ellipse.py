@@ -11,6 +11,7 @@ FACTORY = gmsh.model.occ
 
 # TODO: review this https://www.maplesoft.com/applications/Preview.aspx?id=3773
 
+
 def ellipse_quadrant_points(
     centre: np.ndarray,
     radius_x: float,
@@ -64,19 +65,19 @@ def ellipse_quadrant_points(
         if pnt_angle >= math.pi / 2.0:
             pnt_angle = math.pi / 2.0
             next_point: sympy.Point2D = param_point.subs(param_angle, pnt_angle)
-            return np.array(
-                next_point.coordinates, dtype=float
-            )
+            return np.array(next_point.coordinates, dtype=float)
         next_point: sympy.Point2D = param_point.subs(param_angle, pnt_angle)
-        yield np.array(
-            next_point.coordinates, dtype=float
-        )
+        yield np.array(next_point.coordinates, dtype=float)
         start_point = next_point
         start_angle = pnt_angle
 
 
 def ellipse_segment_angle(
-    ellipse: sympy.Ellipse, start: sympy.Point2D, start_angle: float, length: float, rtol=1e-8
+    ellipse: sympy.Ellipse,
+    start: sympy.Point2D,
+    start_angle: float,
+    length: float,
+    rtol=1e-8,
 ) -> float:
     """Calculate the angle associated with a segment length within a 180.0 degree range
 
@@ -94,17 +95,23 @@ def ellipse_segment_angle(
     angle: sympy.Symbol = sympy.symbols("angle")
     pnt: sympy.Point2D = ellipse.arbitrary_point(angle)
     solution: optimize.OptimizeResult = optimize.minimize_scalar(
-        _iter_ellipse_angle, args=(pnt, angle, start, length), method="bounded", bounds=[start_angle - abs(rtol), math.pi / 2. + start_angle + abs(rtol)], options={"xatol": rtol}
+        _iter_ellipse_angle,
+        args=(pnt, angle, start, length),
+        method="bounded",
+        bounds=[start_angle - abs(rtol), math.pi / 2.0 + start_angle + abs(rtol)],
+        options={"xatol": rtol},
     )
     # manual check
     point_found = pnt.subs(angle, solution.x)
     segment = start.distance(point_found).evalf()
     if not solution.success or abs(segment - length) > rtol:
-        msg = f"Could not find point along tubular insect with details:\n" \
-            f"\tstart: {np.array(start.coordinates, dtype=float)}\n" \
-            f"\tpoint: {np.array(point_found.coordinates, dtype=float)}\n" \
-            f"\tangle: {solution.x}\n" \
+        msg = (
+            f"Could not find point along tubular insect with details:\n"
+            f"\tstart: {np.array(start.coordinates, dtype=float)}\n"
+            f"\tpoint: {np.array(point_found.coordinates, dtype=float)}\n"
+            f"\tangle: {solution.x}\n"
             f"\tlength: {length}"
+        )
         # TODO: maybe this should be a logged warning?
         raise GeometryException(msg)
     return solution.x

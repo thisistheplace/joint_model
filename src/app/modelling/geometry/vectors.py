@@ -2,6 +2,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from typing import Any
 
+
 def unit_vector(vector: list[Any]):
     """Returns the unit vector of the vector."""
     return vector / np.linalg.norm(vector)
@@ -24,7 +25,8 @@ def angle_between_vectors(v1, v2):
         return 0.0
     return angle
 
+
 def rotate(vector: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
-        rotation_vector = angle * axis
-        rotation = Rotation.from_rotvec(rotation_vector)
-        return rotation.apply(vector)
+    rotation_vector = angle * axis
+    rotation = Rotation.from_rotvec(rotation_vector)
+    return rotation.apply(vector)

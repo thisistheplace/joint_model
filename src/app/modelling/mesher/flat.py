@@ -16,7 +16,9 @@ from ...interfaces.mesh import *
 FACTORY = gmsh.model.occ
 
 # scipolate.Rbf()
-def add_flat_tube(master: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> list[int, int]:
+def add_flat_tube(
+    master: Tubular, slaves: list[Tubular], specs: MeshSpecs
+) -> list[int, int]:
     """Make a flat mesh out of a tubular
 
     Initially create it in the Y/Z plane where 1 is at
@@ -78,14 +80,14 @@ def add_flat_tube(master: Tubular, slaves: list[Tubular], specs: MeshSpecs) -> l
 
     FACTORY.synchronize()
 
-    for curve in holes:
-        gmsh.model.mesh.embed(1, [curve], 2, surface)
+    # for curve in holes:
+    #     gmsh.model.mesh.embed(1, [curve], 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
-    for l in lines:
-        FACTORY.remove([(1, l)])
-    FACTORY.remove([(1, perimeter)])
+    # for l in lines:
+    #     FACTORY.remove([(1, l)])
+    # FACTORY.remove([(1, perimeter)])
     FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]

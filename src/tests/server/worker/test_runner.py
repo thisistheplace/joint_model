@@ -16,9 +16,11 @@ def worker() -> Worker:
     yield worker
     worker.stop()
 
+
 @pytest.fixture
 def job() -> Job:
     return Job(EXAMPLE_MODELS["TJoint"])
+
 
 @pytest.fixture
 def runner(worker, job) -> RunJob:
@@ -34,4 +36,3 @@ class TestRunJob:
         runner.wait()
         runner.stop()
         assert not runner.is_alive()
-    

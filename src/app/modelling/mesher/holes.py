@@ -7,8 +7,12 @@ from ..geometry.weld import get_weld_intersect_points
 
 FACTORY = gmsh.model.occ
 
+
 def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
-    pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slave))]
+    pnt_tags = [
+        FACTORY.addPoint(*pnt.tolist())
+        for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slave))
+    ]
     # make sure last point is the same as the first point
     pnt_tags[-1] = pnt_tags[0]
     FACTORY.synchronize()
@@ -17,7 +21,10 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
     ]
     return FACTORY.addCurveLoop(lines)
 
-def create_holes(master: NpTubular, slaves: list[NpTubular], surface: int, specs: MeshSpecs) -> dict[str, np.ndarray]:
+
+def create_holes(
+    master: NpTubular, slaves: list[NpTubular], surface: int, specs: MeshSpecs
+) -> dict[str, np.ndarray]:
     """Create holes in current mesh based on tubular intersections
 
     Args:

@@ -14,9 +14,11 @@ def cache() -> Cache:
     yield cache
     del cache
 
+
 @pytest.fixture
 def job() -> Job:
     yield Job(EXAMPLE_MODELS["TJoint"])
+
 
 class TestCacheSingleton:
     def test_cache_single_instance(self, cache):
@@ -31,7 +33,7 @@ class TestCache:
         with cache.store as store:
             assert job.id in store
             assert job is store[job.id]
-        
+
     def test_get_job(self, cache: Cache, job: Job):
         store_job(job)
         other_job = get_job(job.id)

@@ -14,9 +14,11 @@ from app.interfaces.mesh import MeshSpecs
 def joint():
     return EXAMPLE_MODELS["TJoint"].joint
 
+
 @pytest.fixture
 def model():
     return EXAMPLE_MODELS["TJoint"]
+
 
 @pytest.fixture
 def mesh_specs():
@@ -37,6 +39,7 @@ class TestMeshJoint:
     def test_mesh_joint(self, joint, mesh_specs):
         mesh = mesh_joint(joint, mesh_specs)
         assert mesh is not None
+
 
 class TestMeshModel:
     def test_mesh_model(self, model, mesh_specs):

@@ -21,8 +21,9 @@ LOADING_STYLE = {
     "height": "100vh",
     "width": "100vw",
     "display": "none",
-    "background": "white"
+    "background": "white",
 }
+
 
 class VtkMeshViewerAIO(html.Div):
 
@@ -67,13 +68,10 @@ class VtkMeshViewerAIO(html.Div):
                     children=[
                         dbc.Spinner(
                             color="info",
-                            spinner_style={
-                                "marginTop": "50vh",
-                                "marginLeft": "50vw"
-                            }
+                            spinner_style={"marginTop": "50vh", "marginLeft": "50vw"},
                         )
                     ],
-                    style=LOADING_STYLE
+                    style=LOADING_STYLE,
                 ),
                 html.Div(
                     id=self.ids.vtkholder(aio_id),
@@ -119,7 +117,7 @@ class VtkMeshViewerAIO(html.Div):
         Output(ids.getmeshtoast(MATCH), "duration"),
         Input(ids.jobcomplete(MATCH), "data"),
         State(ids.jsonstore(MATCH), "data"),
-        prevent_initial_callback=True
+        prevent_initial_callback=True,
     )
     def _get_mesh(job: dict, json_str: str):
         if job is None:
@@ -136,7 +134,7 @@ class VtkMeshViewerAIO(html.Div):
                     True,
                     f"Meshing successful: {json_model.name} ({job.id.split('-')[0]})",
                     "success",
-                    4000
+                    4000,
                 )
             except MeshApiHttpError as e:
                 return no_update, True, e.toast_message, "danger", 10000
@@ -148,7 +146,13 @@ class VtkMeshViewerAIO(html.Div):
                         msg = f"{e.response.headers['toast']}"
                 return no_update, True, msg, "danger", 10000
         if job.status == JobStatus.NOTFOUND:
-            return no_update, True, f"Job {job.id} could not be found, please try re-submitting", "danger", 10000
+            return (
+                no_update,
+                True,
+                f"Job {job.id} could not be found, please try re-submitting",
+                "danger",
+                10000,
+            )
         return no_update
 
     @callback(
@@ -157,7 +161,7 @@ class VtkMeshViewerAIO(html.Div):
         Output(ids.monitortoast(MATCH), "children"),
         Input(ids.jobstore(MATCH), "data"),
         Input(ids.interval(MATCH), "n_intervals"),
-        prevent_initial_callback=True
+        prevent_initial_callback=True,
     )
     def _monitor_job(job: dict, _):
         if job is None:
@@ -186,7 +190,13 @@ class VtkMeshViewerAIO(html.Div):
         try:
             json_model = validate_and_convert_json(json_str, Model)
             job: MeshJob = asyncio.run(submit_job(json_model))
-            return job.dict(), True, f"Submitted meshing job: {json_model.name} ({job.id.split('-')[0]})", "success", 4000
+            return (
+                job.dict(),
+                True,
+                f"Submitted meshing job: {json_model.name} ({job.id.split('-')[0]})",
+                "success",
+                4000,
+            )
         except Exception as e:
             return no_update, True, str(e), "danger", 10000
 

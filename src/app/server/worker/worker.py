@@ -12,6 +12,7 @@ DELAY = 5  # ms
 class WorkerException(Exception):
     pass
 
+
 class Worker(SingletonProcess):
     def __init__(self):
         super(Worker, self).__init__()
@@ -87,6 +88,10 @@ class Worker(SingletonProcess):
                 continue
 
             try:
+                # flag to runner that job has started
+                job.status = JobStatus.RUNNING
+                self.outqueue.put(job)
+                # do meshing
                 job.mesh = convert_model_to_dash_vtk(job.data)
                 job.status = JobStatus.COMPLETE
             except Exception as e:
