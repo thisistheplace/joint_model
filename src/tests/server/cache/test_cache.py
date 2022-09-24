@@ -1,7 +1,7 @@
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.interfaces.examples.joints import EXAMPLE_MODELS
 from app.server.worker.jobs.job import Job, JobStatus

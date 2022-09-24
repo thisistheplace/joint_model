@@ -3,7 +3,7 @@ import math
 import numpy as np
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.geometry.vectors import rotate
 

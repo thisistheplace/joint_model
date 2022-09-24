@@ -50,14 +50,12 @@ class Manager(SingletonThread):
             if self._stop_event.is_set():
                 break
             if not self._worker.is_alive():
-                print("worker not alive")
                 # Reset worker singleton
                 setattr(Worker, "__it__", None)
                 worker = Worker()
                 # Set all cached jobs as errors
                 with self._cache.store as store:
                     for job in store.values():
-                        print(job)
                         if job.status in [JobStatus.RUNNING]:
                             job.error = "Job failed due to worker process crashing"
                         worker.outqueue.put(job)
@@ -82,7 +80,6 @@ class Manager(SingletonThread):
 
     def get_job(self, id: str) -> StreamingResponse:
         job = get_job(id)
-        print(f"get_job: {job}")
         if job.status == JobStatus.ERROR:
             raise HTTPException(
                 status_code=500,

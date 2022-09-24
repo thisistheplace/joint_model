@@ -4,7 +4,7 @@ import pytest
 import sympy
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.geometry.intersections import intersections, arc_angle_signed
 from app.interfaces import *

@@ -18,7 +18,7 @@ import sympy
 from typing import Any
 
 from ...interfaces import *
-from .vectors import angle_between_vectors
+from .vectors import angle_between_vectors, rotate
 
 
 class IntersectionError(Exception):
@@ -175,17 +175,15 @@ def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
     point = intersections(master, slave)
     master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
     angle = arc_angle_signed(master_circle, point)
-    # Adjust point X coordinate by signed arc length
-    point[0] += master_circle.circumference * (angle / math.pi)
-    # Set y coordinate to 0.0
-    point[1] = 0.
-    return point
+    return rotate(point, np.array([0., 0., 1.]), angle)
 
 
 def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
-    """0 rads is aligned with X axis of circle"""
-    print(f"point: {point}")
-    seam = sympy.Point2D(circle.radius, 0.0)
+    """Seam (0 rads) is aligned with X axis
+    
+    Circle is in 2D X/Y plane
+    """
+    seam = sympy.Point2D(circle.radius, 0.)
     seg_vector = np.empty((3,))
     seg_vector[:2] = point[:2] - np.array(seam.coordinates)
     seg_vector[2] = 0.0

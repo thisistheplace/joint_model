@@ -7,6 +7,7 @@ from app.interfaces.numpy.model import NpTubular
 
 from ..geometry.line import line_points
 from .holes import hole_curve
+from ..geometry.weld import get_weld_intersect_points
 
 from ...interfaces.geometry import *
 from ...interfaces.mapper import map_to_np
@@ -64,12 +65,19 @@ def add_flat_tube(
     # NOTE: point order may need to be clockwise!
     key_points = [pt1, pt2, pt3, pt4, pt5, pt6, pt1]
 
-    for point in key_points:
-        print(point)
-
     line_of_points = list(
         line_points(key_points, interval=specs.interval, size=specs.size)
     )
+    
+    weld_pnts = [pnt for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slaves[0]))]
+    points = line_of_points + weld_pnts
+    x = [pnt[0] for pnt in points]
+    y = [pnt[2] for pnt in points]
+    import plotly.express as px
+    fig = px.scatter(x=x, y=y)
+    fig.show()
+
+    raise TypeError()
 
     pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
     lines = [

@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.interfaces import *
 from app.modelling.mesher.mesh import mesh_model

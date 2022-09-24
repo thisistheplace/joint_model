@@ -3,7 +3,7 @@ import gmsh
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.mesher.flat import add_flat_tube
 from app.interfaces.examples.joints import EXAMPLE_MODELS

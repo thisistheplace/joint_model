@@ -27,12 +27,13 @@ def angle_between_vectors(v1, v2):
 
 
 def rotate(vector: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
-    rotation_vector = angle * axis
+    rotation_vector = angle * unit_vector(axis)
     rotation = Rotation.from_rotvec(rotation_vector)
     return rotation.apply(vector)
 
 
 def unit_perp_vector(vector: np.ndarray) -> np.ndarray:
+    vector = unit_vector(vector)
     if vector[1] != 0.0 or vector[2] != 0.0:
         temp = np.array([1.0, 0.0, 0.0])
     else:

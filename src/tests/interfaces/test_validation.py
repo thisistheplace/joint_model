@@ -2,7 +2,7 @@ from pydantic import ValidationError
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.interfaces.model import Model
 from app.interfaces.geometry import Point3D

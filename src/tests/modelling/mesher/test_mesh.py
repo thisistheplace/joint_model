@@ -3,7 +3,7 @@ import gmsh
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.mesher.mesh import mesh_joint, mesh_model
 from app.interfaces.examples.joints import EXAMPLE_MODELS
