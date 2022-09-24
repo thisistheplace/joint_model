@@ -92,17 +92,13 @@ def add_flat_tube(
     holes = [hole_curve(master, slave) for slave in slaves]
 
     surface = FACTORY.addPlaneSurface([perimeter] + holes)
-
     FACTORY.synchronize()
-
-    # for curve in holes:
-    #     gmsh.model.mesh.embed(1, [curve], 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
-    # for l in lines:
-    #     FACTORY.remove([(1, l)])
-    # FACTORY.remove([(1, perimeter)])
+    for l in lines:
+        FACTORY.remove([(1, l)])
+    FACTORY.remove([(1, perimeter)])
     FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]

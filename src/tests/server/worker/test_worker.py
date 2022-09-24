@@ -35,7 +35,7 @@ class TestWorkerRunsJob:
     def test_worker_runs_job(self, worker):
         jobin = Job(EXAMPLE_MODELS["TJoint"])
         worker.submit(jobin)
-        jobout = worker.outqueue.get(timeout=60)
+        jobout = worker.outqueue.get(timeout=5)
         assert jobin.id == jobout.id
         assert jobout.error is None
         assert jobin.data == jobout.data

@@ -1,5 +1,5 @@
 echo building docker container
-docker build -f Dockerfile-rest -t jointrest:latest .
+docker build -f Dockerfile-test -t jointrest:latest .
 
 echo running docker pytest
-docker run -it jointrest pytest -svv tests/modelling/geometry/test_weld.py
+docker run -it jointrest pytest -svv src
