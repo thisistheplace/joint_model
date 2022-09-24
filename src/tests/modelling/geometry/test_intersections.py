@@ -6,7 +6,7 @@ import sys
 
 sys.path.append("src")
 
-from app.modelling.geometry.intersections import intersections, arc_angle_signed
+from app.modelling.geometry.intersections import intersection, arc_angle_signed
 from app.interfaces import *
 from app.interfaces.mapper import map_to_np
 

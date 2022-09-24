@@ -18,7 +18,7 @@ import sympy
 from typing import Any
 
 from ...interfaces import *
-from .vectors import angle_between_vectors, rotate
+from .vectors import angle_between_vectors, unit_vector
 
 
 class IntersectionError(Exception):
@@ -151,7 +151,7 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
     if np.allclose(point, vector):
         vector = vector * 2
 
-    return line_type(point, vector)
+    return line_type(point, point + vector)
 
 
 def flat_tube_intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
@@ -196,4 +196,4 @@ def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
     seg_vector[2] = 0.0
     seg_length = np.linalg.norm(seg_vector)
     sub_angle = math.acos(seg_length / 2.0 / circle.radius)
-    return -1 * np.sign(point[0]) * (math.pi - 2 * sub_angle)
+    return np.sign(circle.center[0] - point[0]) * (math.pi - 2 * sub_angle)

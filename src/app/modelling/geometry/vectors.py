@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.spatial.transform import Rotation
+import transforms3d._gohlketransforms as transforms
 from typing import Any
 
 
@@ -26,16 +26,8 @@ def angle_between_vectors(v1, v2):
     return angle
 
 
-def rotate(vector: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
-    rotation_vector = angle * unit_vector(axis)
-    rotation = Rotation.from_rotvec(rotation_vector)
-    return rotation.apply(vector)
-
-
-def unit_perp_vector(vector: np.ndarray) -> np.ndarray:
-    vector = unit_vector(vector)
-    if vector[1] != 0.0 or vector[2] != 0.0:
-        temp = np.array([1.0, 0.0, 0.0])
-    else:
-        temp = np.array([0.0, 1.0, 0.0])
-    return unit_vector(np.cross(vector, temp))
+def rotate(point: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
+    rotation = transforms.rotation_matrix(angle, axis, point)
+    rpoint = np.zeros((4,))
+    rpoint[:3] = point[:3]
+    return np.dot(rotation, rpoint)[:3]

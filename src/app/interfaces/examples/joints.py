@@ -9,7 +9,7 @@ EXAMPLE_MODELS = {
             master=Tubular(
                     name="Vertical",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=5)
+                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=10)
                     ),
                     diameter=0.5,
                 ),
@@ -31,7 +31,7 @@ EXAMPLE_MODELS = {
             master=Tubular(
                     name="Vertical",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=5)
+                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=10)
                     ),
                     diameter=0.5,
                 ),
@@ -53,7 +53,7 @@ EXAMPLE_MODELS = {
             master=Tubular(
                     name="Vertical",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=5)
+                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=10)
                     ),
                     diameter=0.5,
                 ),
@@ -61,7 +61,7 @@ EXAMPLE_MODELS = {
                 Tubular(
                     name="Horizontal",
                     axis=Axis3D(
-                        point=Point3D(x=0.25, y=0.25, z=0), vector=Vector3D(x=0, y=3, z=0)
+                        point=Point3D(x=0.1, y=0.1, z=0), vector=Vector3D(x=0, y=3, z=0)
                     ),
                     diameter=0.25,
                 ),
@@ -75,7 +75,7 @@ EXAMPLE_MODELS = {
             master=Tubular(
                     name="Chord",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=5)
+                        point=Point3D(x=0, y=0, z=-5), vector=Vector3D(x=0, y=0, z=10)
                     ),
                     diameter=0.6,
                 ),
@@ -83,28 +83,28 @@ EXAMPLE_MODELS = {
                 Tubular(
                     name="Brace1",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=3.5), vector=Vector3D(x=2, y=2, z=2)
+                        point=Point3D(x=0.3, y=0.3, z=1), vector=Vector3D(x=2, y=2, z=2)
                     ),
                     diameter=0.25,
                 ),
                 Tubular(
                     name="Brace2",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=3.5), vector=Vector3D(x=-2, y=2, z=2)
+                        point=Point3D(x=-0.3, y=0.3, z=1), vector=Vector3D(x=-2, y=2, z=2)
                     ),
                     diameter=0.25,
                 ),
                 Tubular(
                     name="Brace3",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=2.5), vector=Vector3D(x=2, y=2, z=-2)
+                        point=Point3D(x=0.3, y=0.3, z=-1), vector=Vector3D(x=2, y=2, z=-2)
                     ),
                     diameter=0.4,
                 ),
                 Tubular(
                     name="Brace4",
                     axis=Axis3D(
-                        point=Point3D(x=0, y=0, z=2.5), vector=Vector3D(x=-2, y=2, z=-2)
+                        point=Point3D(x=-0.3, y=0.3, z=-1), vector=Vector3D(x=-2, y=2, z=-2)
                     ),
                     diameter=0.4,
                 ),

@@ -13,4 +13,5 @@ class TestRotate:
         axis = np.array([0., 0., 1,])
         angle = math.pi / 2.
         expected = np.array([0., 1., 0.])
-        assert np.allclose(rotate(point, axis, angle), expected)
+        got = rotate(point, axis, angle)
+        assert np.allclose(got, expected)
