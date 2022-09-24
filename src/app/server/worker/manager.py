@@ -30,7 +30,7 @@ class Manager(SingletonThread):
         self._cache = Cache()  # singleton
         if not hasattr(self, "_runners"):
             self._runners = {}  # hold runner threads
-        self._worker = Worker()  # singleton
+        self._worker = Worker()
         self._stop_event = threading.Event()
 
     @property
@@ -51,7 +51,6 @@ class Manager(SingletonThread):
                 break
             if not self._worker.is_alive():
                 # Reset worker singleton
-                setattr(Worker, "__it__", None)
                 worker = Worker()
                 # Set all cached jobs as errors
                 with self._cache.store as store:
@@ -68,6 +67,9 @@ class Manager(SingletonThread):
             runner.stop()
         self._runners = {}
         self.worker.stop()
+        del self._worker
+        import gc
+        gc.collect() 
         self._stop_event.set()
 
     def submit_job(self, model: Model) -> MeshJob:

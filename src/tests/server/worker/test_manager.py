@@ -37,6 +37,3 @@ class TestManagerRunsJob:
         job_out = manager.wait_for_job(job_in.id)
         assert job_out.status == JobStatus.COMPLETE
         assert job_out.error is None
-
-    def test_manager_raises_error(self, manager):
-        pass

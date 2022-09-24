@@ -5,16 +5,16 @@ sys.path.append("src")
 
 from app.interfaces.examples.joints import EXAMPLE_MODELS
 from app.server.worker.jobs.job import Job
-from app.server.worker.worker import Worker
+from app.server.worker.manager import Manager
 from app.server.worker.runner import RunJob
 
 
 @pytest.fixture
-def worker() -> Worker:
-    worker = Worker()
-    worker.start()
-    yield worker
-    worker.stop()
+def manager() -> Manager:
+    manager = Manager()
+    manager.start()
+    yield manager
+    manager.stop()
 
 
 @pytest.fixture
@@ -23,8 +23,8 @@ def job() -> Job:
 
 
 @pytest.fixture
-def runner(worker, job) -> RunJob:
-    runner = RunJob(worker, job, False)
+def runner(manager, job) -> RunJob:
+    runner = RunJob(manager, job, False)
     yield runner
     if runner.is_alive():
         runner.stop()
