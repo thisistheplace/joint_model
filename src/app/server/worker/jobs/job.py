@@ -58,4 +58,4 @@ class Job:
         self._status = value
 
     def __str__(self):
-        return f"id: {self.id}\nstatus: {self.status}"
+        return f"id: {self.id}\nstatus: {self.status}\nerror: {self.error}"

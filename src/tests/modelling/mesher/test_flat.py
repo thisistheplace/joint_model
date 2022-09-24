@@ -3,16 +3,16 @@ import gmsh
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.mesher.flat import add_flat_tube
 from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.interfaces.mesh import MeshSpecs
+from app.interfaces import *
 
 
 @pytest.fixture
 def tube():
-    return EXAMPLE_MODELS["TJoint"].joint.slaves[0]
+    return EXAMPLE_MODELS["TJoint"]
 
 
 @pytest.fixture
@@ -31,5 +31,5 @@ def mesh_context() -> NoneType:
 
 @pytest.mark.usefixtures("mesh_context")
 class TestAddFlatTube:
-    def test_add_flat_tube(self, tube, mesh_specs):
-        add_flat_tube(tube, mesh_specs)
+    def test_add_flat_tube(self, tube: Model, mesh_specs: MeshSpecs):
+        add_flat_tube(tube.joint.master, tube.joint.slaves, mesh_specs)

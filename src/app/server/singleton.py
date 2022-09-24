@@ -1,4 +1,4 @@
-from multiprocessing import Process
+from threading import Thread
 
 class Singleton:
     def __new__(cls, *args, **kwds):
@@ -13,7 +13,7 @@ class Singleton:
         pass
 
 
-class SingletonProcess(Process):
+class SingletonThread(Thread):
     def __new__(cls, *args, **kwds):
         it = cls.__dict__.get("__it__")
         if it is not None:
@@ -23,4 +23,4 @@ class SingletonProcess(Process):
         return it
 
     def init(self, *args, **kwds):
-        super(SingletonProcess, self).__init__()
+        super(SingletonThread, self).__init__()

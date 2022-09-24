@@ -34,35 +34,40 @@ from itertools import combinations
 
 from .cylinder import add_cylinder
 from .flat import add_flat_tube
-from .holes import create_holes
 
 from ...interfaces.geometry import *
 from ...interfaces.model import *
 from ...interfaces.mesh import *
 from ...interfaces.mapper import map_to_np
 
+from ..geometry.intersections import intersection
+
 FACTORY = gmsh.model.occ
 
 # TODO: need to handle memory exceptions!!! Or try and predict memory usage!
 
 
-def mesh_master(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
+def mesh_master(
+    tube: Tubular, slaves: list[Tubular], specs: MeshSpecs
+) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
-    return add_cylinder(tube)
-    # return add_flat_tube(tube, specs)
+    # return add_cylinder(tube)
+    return add_flat_tube(tube, slaves, specs)
+
 
 def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
     """Adds tubular geometry and returns tag id"""
     return add_cylinder(tube)
     # return add_flat_tube(tube, specs)
 
+
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {}
-    joint_mesh.update({joint.master.name: mesh_master(joint.master, specs)})
-    joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
+    joint_mesh.update(
+        {joint.master.name: mesh_master(joint.master, joint.slaves, specs)}
+    )
+    # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
-    specs = MeshSpecs(size=0.01)
-    #create_holes(map_to_np(joint.master), [map_to_np(tube) for tube in joint.slaves], specs)
     FACTORY.synchronize()
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
@@ -74,6 +79,9 @@ def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
 def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
+        # set messaging level to errors
+        gmsh.option.setNumber("General.Verbosity", 1)
+
         meshed_tubes = mesh_joint(model.joint, specs)
 
         FACTORY.synchronize()
@@ -95,8 +103,8 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
                 # raise Exception("SHOULD BE AN INTERSECTION")
 
         FACTORY.synchronize()
-        gmsh.option.setNumber("Mesh.MeshSizeMax", 0.05)
-        gmsh.model.mesh.generate(3)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
+        gmsh.model.mesh.generate(2)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever
         # the ordering of their nodes) and assign them a unique tag. This identification

@@ -1,9 +1,7 @@
-from multiprocessing import Queue, Event, RLock, Condition
-import queue
+from multiprocessing import Queue, Event, RLock, Condition, Process
 
 from .jobs.job import Job, JobStatus
 from ...converters.model import convert_model_to_dash_vtk
-from ..singleton import SingletonProcess
 
 SENTINEL = "STOP"
 DELAY = 5  # ms
@@ -12,7 +10,8 @@ DELAY = 5  # ms
 class WorkerException(Exception):
     pass
 
-class Worker(SingletonProcess):
+
+class Worker(Process):
     def __init__(self):
         super(Worker, self).__init__()
         if not hasattr(self, "_inqueue"):
@@ -48,19 +47,12 @@ class Worker(SingletonProcess):
         with self._lock:
             if not self._stop_event.is_set():
                 self._stop_event.set()
-
             while self.inqueue.qsize() > 0:
                 self.inqueue.get_nowait()
             self.inqueue.put(SENTINEL)
-            with self._notify:
-                self._notify.wait()
-
-            if self.is_alive():
-                self.join()
             while self.outqueue.qsize() > 0:
                 self.outqueue.get_nowait()
-            self.close()
-            del self
+            self.terminate()
 
     def run(self):
         while True:
@@ -75,8 +67,6 @@ class Worker(SingletonProcess):
                 # stop event to notify other threads
                 if not self._stop_event.is_set():
                     self._stop_event.set()
-                with self._notify:
-                    self._notify.notify_all()
                 break
 
             elif not isinstance(job, Job):
@@ -87,6 +77,10 @@ class Worker(SingletonProcess):
                 continue
 
             try:
+                # flag to runner that job has started
+                job.status = JobStatus.RUNNING
+                self.outqueue.put(job)
+                # do meshing
                 job.mesh = convert_model_to_dash_vtk(job.data)
                 job.status = JobStatus.COMPLETE
             except Exception as e:

@@ -5,7 +5,7 @@ import pytest
 import sys
 from typing import Any
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.interfaces import *
 from app.interfaces.mapper import map_to_np

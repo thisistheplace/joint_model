@@ -17,19 +17,19 @@ import sympy
 from typing import Any
 
 from ...interfaces import *
-from .vectors import unit_vector, angle_between_vectors
+from .vectors import angle_between_vectors
 
 
 class IntersectionError(Exception):
     pass
 
 
-def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.ndarray]:
+def intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Calculate 3D points where slaves intersect master
 
     Args:
-        master: 3D tubular with slave tubes may intersect
-        slaves: list of 3D tubulars which may intersect master
+        master: 3D tubular which slave tube may intersect
+        slave: 3D tubular which may intersect master
 
     Returns:
         Dict of np.ndarray where slaves intersect with master (key: NpTubular.name)
@@ -38,70 +38,46 @@ def intersections(master: NpTubular, slaves: list[NpTubular]) -> dict[str, np.nd
         IntersectionError if any of the slaves don't intersect the master
     """
     # TODO: check that slave point doesn't intersect master axis!!!
-    intersects = {}  # key: slave.name, value: NpPoint3D of intersection
-    for slave in slaves:
-        # Get 2D point of intersection with the circle
-        intersect2D_array = circle_intersect(master.axis.point.array, master.diameter, slave.axis.point.array, slave.axis.vector.array)
+    # Get 2D point of intersection with the circle
+    intersect2D_array = circle_intersect(
+        master.axis.point.array,
+        master.diameter,
+        slave.axis.point.array,
+        slave.axis.vector.array,
+    )
 
-        if len(intersect2D_array) == 0:
-            raise IntersectionError(f"No intersections found for {slave.name} on {master.name}")
-
-        # Use point to determine side of circle intersect to use
-        for intersect2D in intersect2D_array:
-            intersect_vector = intersect2D - master.axis.point.array[:2]
-            point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
-            angle2D = angle_between_vectors(intersect_vector, point_vector)
-            if angle2D <= math.pi / 2:
-                break
-
-        # Determine intersection of vector with plane
-        plane_point = np.array(
-            [intersect2D[0], intersect2D[1], slave.axis.point.array[2]]
+    if len(intersect2D_array) == 0:
+        raise IntersectionError(
+            f"No intersections found for {slave.name} on {master.name}"
         )
-        p2 = deepcopy(plane_point)
+
+    # Use point to determine side of circle intersect to use
+    for intersect2D in intersect2D_array:
+        intersect_vector = intersect2D - master.axis.point.array[:2]
+        point_vector = slave.axis.point.array[:2] - master.axis.point.array[:2]
+        angle2D = angle_between_vectors(intersect_vector, point_vector)
+        if angle2D <= math.pi / 2:
+            break
+
+    # Determine intersection of vector with plane
+    plane_point = np.array([intersect2D[0], intersect2D[1], slave.axis.point.array[2]])
+    p2 = deepcopy(plane_point)
+    p3 = deepcopy(plane_point)
+    if abs(0.0 - slave.axis.vector.array[0]) < 1e-12:
         p2[0] += 1.0
-        p3 = deepcopy(plane_point)
-        p3[2] += 1.0
-        plane: sympy.Plane = sympy.Plane(
-            sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
-        )
-        intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
-        intersects[slave.name] = np.array(intersect3D, dtype=float)
+    else:
+        p2[1] += 1.0
+    p3[2] += 1.0
+    plane: sympy.Plane = sympy.Plane(
+        sympy.Point3D(plane_point), sympy.Point3D(p2), sympy.Point3D(p3)
+    )
+    intersect3D = plane_intersect(slave.axis.vector.array, plane_point, plane)
 
-    return intersects
+    return intersect3D
 
-
-def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
-    """Calculate 3D point where slave intersects plane
-
-    Plane is in X/Z plane.
-
-    Args:
-        tube: 3D tubular which may intersect master
-        point: 3D numpy array defining a point on the plane
-
-    Returns:
-        numpy array where slave intersects with plane
-
-    Raises:
-        IntersectionError if the slave does not intersect the master
-    """
-    # create tube projection plane at point of intersect on circle
-    # plane is in X/Z system
-    line = get_sympy_line(point, axis, sympy.Line3D)
-    try:
-        # only one intersect for a line and plane
-        intersect = plane.intersection(line)[0]
-        if isinstance(intersect, sympy.Line3D):
-            return point
-        return np.array(intersect, dtype=float)
-    except Exception as e:
-        # Handle some specific exception here where an intersection is not found
-        msg = f"Could not find intersection point of tubular with plane.\nEncountered error:\n{e}"
-        raise IntersectionError(msg)
-
-
-def circle_intersect(center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray) -> np.ndarray:
+def circle_intersect(
+    center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray
+) -> np.ndarray:
     """Calculate 2D point where slave intersects master tube
 
     2D plane is in X/Y plane
@@ -144,4 +120,80 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
     if np.allclose(point, vector):
         vector = vector * 2
 
-    return line_type(point, vector)
+    return line_type(point, point + vector, evaluate=False)
+
+
+def flat_tube_intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
+    """Get the intersection points of slaves on master if master was unfurled to a plane
+
+    Assumes circle can be constructed from X/Y coordinates. Plane is X/Z. Midpoint of tube
+    is aligned with Y axis (X local 2D circle axis).
+
+    Args:
+        master: 3D tubular which slave tube may intersect
+        slaves: 3D tubular which may intersect master
+
+    Returns:
+        Dict of (point: np.ndarray) where point is coordinate slaves
+        intersect with master if tube is flattened (key: NpTubular.name)
+
+    Raises:
+        IntersectionError if any of the slaves don't intersect the master
+    """
+    # Get intersections on master surface
+    point = intersection(master, slave)
+    master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
+    angle = arc_angle_signed(master_circle, point) * -1.0 # -1 since rotation is X to Y
+    if angle > math.pi:
+        angle = 2 * math.pi - angle
+    elif angle < -1 * math.pi:
+        angle = -2 * math.pi - angle
+    circ_length = (master_circle.circumference / 2.) * angle / math.pi
+    point[0] = circ_length
+    return point
+
+def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
+    """Seam (0 rads) is aligned with Y axis
+    
+    Positive rotation from X to Y axis (clockwise!)
+
+    Circle is in 2D X/Y plane
+    """
+    seam = sympy.Point2D(0., circle.radius)
+    seg_vector = np.empty((3,))
+    seg_vector[:2] = point[:2] - np.array(seam.coordinates)
+    seg_vector[2] = 0.0
+    seg_length = np.linalg.norm(seg_vector)
+    sub_angle = math.acos(seg_length / 2.0 / circle.radius)
+    return np.sign(circle.center[0] - point[0]) * (math.pi - 2 * sub_angle)
+
+def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
+    """Calculate 3D point where slave intersects plane
+
+    Plane is in X/Z plane.
+
+    Args:
+        tube: 3D tubular which may intersect master
+        point: 3D numpy array defining a point on the plane
+
+    Returns:
+        numpy array where slave intersects with plane
+
+    Raises:
+        IntersectionError if the slave does not intersect the master
+    """
+    plane_point = np.array(plane.p1, dtype=float)
+    plane_normal = np.array(plane.normal_vector, dtype=float)
+    epsilon = 1e-6
+    
+    try:
+        ndotu = plane_normal.dot(axis)
+        if abs(ndotu) < epsilon:
+            raise IntersectionError(f"Cannot compute intersect of vector {axis} which lies in plane {plane}")
+        w = point - plane_point
+        si = -plane_normal.dot(w) / ndotu
+        return w + si * axis + plane_point
+    except Exception as e:
+        # Handle some specific exception here where an intersection is not found
+        msg = f"Could not find intersection point of vector {axis} with plane {plane}.\nEncountered error:\n{e}"
+        raise IntersectionError(msg)

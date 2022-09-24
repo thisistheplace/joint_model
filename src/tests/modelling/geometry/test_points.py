@@ -6,7 +6,7 @@ import pytest
 import sympy
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.modelling.geometry.line import (
     ellipse_segment_angle,
@@ -15,7 +15,7 @@ from app.modelling.geometry.line import (
     check_ellipse_intersect,
     rotate_points,
     ellipse_points,
-    ellipse_quadrant_points
+    ellipse_quadrant_points,
 )
 
 
@@ -33,9 +33,11 @@ def square():
 def circle():
     return sympy.Ellipse(center=np.array([0.0, 0.0]), hradius=1.0, vradius=1.0)
 
+
 @pytest.fixture
 def offset_circle():
     return sympy.Ellipse(center=np.array([1.0, 0.0]), hradius=1.0, vradius=1.0)
+
 
 @pytest.fixture
 def ellipse():
@@ -108,9 +110,7 @@ class TestEllipseSegmentAngle:
     def test_ellipse_segment_angle_ellipse(self, ellipse):
         tol = 1e-6
         start = sympy.Point2D([1.0, 0.0])
-        angle = ellipse_segment_angle(
-            ellipse, start, 0.0, math.sqrt(5.0), tol
-        )
+        angle = ellipse_segment_angle(ellipse, start, 0.0, math.sqrt(5.0), tol)
         assert abs(angle - math.pi / 2) <= tol
 
 

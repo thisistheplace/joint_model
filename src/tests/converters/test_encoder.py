@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import sys
 
-sys.path.append("/src")
+sys.path.append("src")
 
 from app.converters.encoder import NpEncoder
 

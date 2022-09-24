@@ -12,10 +12,12 @@ from ...constants import RESTAPI_URL
 from ...server.worker.jobs.interfaces import MeshJob
 from ...server.worker.jobs.job import JobStatus
 
+
 def _get_url() -> str:
     if RESTAPI_URL not in os.environ:
         raise OSError(f"Environment variable {RESTAPI_URL} is not defined")
     return os.environ[RESTAPI_URL]
+
 
 async def submit_job(model: Model) -> MeshJob:
     """Makes a request to server hosting FastAPI
@@ -36,6 +38,7 @@ async def submit_job(model: Model) -> MeshJob:
         job_str = r.content.decode("utf-8")
         return MeshJob(**json.loads(job_str))
 
+
 async def monitor_job(job: MeshJob) -> MeshJob:
     """Gets the status of a job which has been submitted"""
     url = _get_url()
@@ -46,6 +49,7 @@ async def monitor_job(job: MeshJob) -> MeshJob:
             raise MeshApiHttpError(r)
         job_str = r.content.decode("utf-8")
     return MeshJob(**json.loads(job_str))
+
 
 async def get_mesh(job: MeshJob) -> DashVtkModel:
     """Gets the mesh from a server hosting Joint Mesh FastAPI

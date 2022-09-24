@@ -1,5 +1,6 @@
-from typing import Any
 import numpy as np
+import transforms3d._gohlketransforms as transforms
+from typing import Any
 
 
 def unit_vector(vector: list[Any]):
@@ -23,3 +24,10 @@ def angle_between_vectors(v1, v2):
     if np.isnan(angle):
         return 0.0
     return angle
+
+
+def rotate(point: np.ndarray, axis: np.ndarray, angle: float) -> np.ndarray:
+    rotation = transforms.rotation_matrix(angle, axis, point)
+    rpoint = np.zeros((4,))
+    rpoint[:3] = point[:3]
+    return np.dot(rotation, rpoint)[:3]
