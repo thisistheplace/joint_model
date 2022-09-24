@@ -21,34 +21,55 @@ def master():
         )
     )
 
-
 @pytest.fixture
-def slave():
+def xslave():
     return map_to_np(
         Tubular(
             name="slave",
-            axis=Axis3D(point=Point3D(x=0.5, y=0, z=0), vector=Vector3D(x=4, y=0, z=0)),
+            axis=Axis3D(point=Point3D(x=1., y=0., z=0), vector=Vector3D(x=4., y=0., z=0)),
+            diameter=1.,
+        )
+    )
+
+@pytest.fixture
+def yslave():
+    return map_to_np(
+        Tubular(
+            name="slave",
+            axis=Axis3D(point=Point3D(x=0., y=1.0, z=0), vector=Vector3D(x=0., y=4., z=0)),
             diameter=1.,
         )
     )
 
 
-@pytest.fixture
-def circle(master):
-    return sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
-
-
 class TestIntersections:
-    def test_simple_weld(self, master: NpTubular, slave: NpTubular):
-        radius = slave.diameter / 2.
-        z = slave.axis.point.array[2]
+
+    def test_weld_x_axis(self, master: NpTubular, xslave: NpTubular):
+        mradius = master.diameter / 2.
+        mcirc = sympy.Circle(master.axis.point.array[:2], mradius)
+        xoffset = mcirc.circumference / 4.
+        sradius = xslave.diameter / 2.
+        z = xslave.axis.point.array[2]
         expected = [
-            np.array([radius, 0., z]),
-            np.array([0., radius, z]),
-            np.array([-1 * radius, 0., z]),
-            np.array([0., -1 * radius, z])
+            np.array([xoffset, mradius, z + sradius], dtype=float),
+            np.array([xoffset + sradius, mradius, z], dtype=float),
+            np.array([xoffset, mradius, z - sradius], dtype=float),
+            np.array([xoffset - sradius, mradius, z], dtype=float),
         ]
-        got = list(get_weld_intersect_points(master, slave))
-        print(expected)
-        print(got)
-        assert expected == got
+        got = list(get_weld_intersect_points(master, xslave))
+        for idx, target in enumerate(expected):
+            assert np.allclose(target, got[idx])
+
+    def test_weld_y_axis(self, master: NpTubular, yslave: NpTubular):
+        mradius = master.diameter / 2.
+        sradius = yslave.diameter / 2.
+        z = yslave.axis.point.array[2]
+        expected = [
+            np.array([0., mradius, z + sradius]),
+            np.array([sradius, mradius, z]),
+            np.array([0., mradius, z - sradius]),
+            np.array([-1 * sradius, mradius, z]),
+        ]
+        got = list(get_weld_intersect_points(master, yslave))
+        for idx, target in enumerate(expected):
+            assert np.allclose(target, got[idx])

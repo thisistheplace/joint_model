@@ -69,15 +69,13 @@ def add_flat_tube(
         line_points(key_points, interval=specs.interval, size=specs.size)
     )
     
-    weld_pnts = [pnt for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slaves[0]))]
-    points = line_of_points + weld_pnts
-    x = [pnt[0] for pnt in points]
-    y = [pnt[2] for pnt in points]
-    import plotly.express as px
-    fig = px.scatter(x=x, y=y)
-    fig.show()
-
-    raise TypeError()
+    # weld_pnts = [pnt for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slaves[0]))]
+    # points = line_of_points + weld_pnts
+    # x = [pnt[0] for pnt in points]
+    # y = [pnt[2] for pnt in points]
+    # import plotly.express as px
+    # fig = px.scatter(x=x, y=y)
+    # fig.show()
 
     pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
     lines = [

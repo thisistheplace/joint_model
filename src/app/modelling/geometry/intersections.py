@@ -25,7 +25,7 @@ class IntersectionError(Exception):
     pass
 
 
-def intersections(master: NpTubular, slave: NpTubular) -> np.ndarray:
+def intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Calculate 3D points where slaves intersect master
 
     Args:
@@ -154,7 +154,7 @@ def get_sympy_line(point: np.ndarray, vector: np.ndarray, line_type: Any) -> sym
     return line_type(point, vector)
 
 
-def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
+def flat_tube_intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
     """Get the intersection points of slaves on master if master was unfurled to a plane
 
     Assumes circle can be constructed from X/Y coordinates. Plane is X/Z. Midpoint of tube
@@ -172,21 +172,28 @@ def flat_tube_intersect(master: NpTubular, slave: NpTubular) -> np.ndarray:
         IntersectionError if any of the slaves don't intersect the master
     """
     # Get intersections on master surface
-    point = intersections(master, slave)
+    point = intersection(master, slave)
     master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
-    angle = arc_angle_signed(master_circle, point)
-    return rotate(point, np.array([0., 0., 1.]), angle)
-
+    angle = arc_angle_signed(master_circle, point) * -1.0 # -1 since rotation is X to Y
+    if angle > math.pi:
+        angle = 2 * math.pi - angle
+    elif angle < -1 * math.pi:
+        angle = -2 * math.pi - angle
+    circ_length = (master_circle.circumference / 2.) * angle / math.pi
+    point[0] = circ_length
+    return point
 
 def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
-    """Seam (0 rads) is aligned with X axis
+    """Seam (0 rads) is aligned with Y axis
     
+    Positive rotation from X to Y axis (clockwise!)
+
     Circle is in 2D X/Y plane
     """
-    seam = sympy.Point2D(circle.radius, 0.)
+    seam = sympy.Point2D(0., circle.radius)
     seg_vector = np.empty((3,))
     seg_vector[:2] = point[:2] - np.array(seam.coordinates)
     seg_vector[2] = 0.0
     seg_length = np.linalg.norm(seg_vector)
     sub_angle = math.acos(seg_length / 2.0 / circle.radius)
-    return np.sign(point[1]) * (math.pi - 2 * sub_angle)
+    return -1 * np.sign(point[0]) * (math.pi - 2 * sub_angle)

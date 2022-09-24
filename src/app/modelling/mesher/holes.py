@@ -14,7 +14,6 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
         for pnt in get_weld_intersect_points(map_to_np(master), map_to_np(slave))
     ]
     # make sure last point is the same as the first point
-    pnt_tags = pnt_tags[:15]
     pnt_tags[-1] = pnt_tags[0]
     FACTORY.synchronize()
     lines = [

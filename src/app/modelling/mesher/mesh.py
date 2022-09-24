@@ -40,7 +40,7 @@ from ...interfaces.model import *
 from ...interfaces.mesh import *
 from ...interfaces.mapper import map_to_np
 
-from ..geometry.intersections import intersections
+from ..geometry.intersections import intersection
 
 FACTORY = gmsh.model.occ
 
