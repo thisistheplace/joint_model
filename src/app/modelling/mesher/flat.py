@@ -70,19 +70,6 @@ def add_flat_tube(
         line_points(key_points, interval=specs.interval, size=specs.size)
     )
 
-    # weld_pnts = []
-    # for pnts in [list(get_weld_intersect_points(map_to_np(master), map_to_np(slave))) for slave in slaves]:
-    #     weld_pnts += pnts
-    # points = line_of_points + weld_pnts
-    # x = [pnt[0] for pnt in points]
-    # y = [pnt[1] for pnt in points]
-    # z = [pnt[2] for pnt in points]
-    # import plotly.express as px
-    # fig = px.scatter_3d(x=x, y=y, z=z)
-    # fig.show()
-
-    # raise TypeError()
-
     pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in line_of_points]
     lines = [
         FACTORY.addLine(pnt, pnt_tags[idx + 1]) for idx, pnt in enumerate(pnt_tags[:-1])
@@ -185,13 +172,13 @@ def add_flat_tube(
 
 
     # Embed radial curves in surface so they become meshed
-    gmsh.model.mesh.embed(1, mesh_constraints, 2, surface)
+    gmsh.model.mesh.embed(1, mesh_constraints + holes, 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
-    # for l in lines:
-    #     FACTORY.remove([(1, l)])
-    # FACTORY.remove([(1, perimeter)])
-    # FACTORY.synchronize()
+    for l in lines:
+        FACTORY.remove([(1, l)])
+    FACTORY.remove([(1, perimeter)])
+    FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]

@@ -52,7 +52,7 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
         for idx, pnt in enumerate(hole_pnt_tags[:-1])
     ]
     hole = FACTORY.addCurveLoop(lines)
-    # Delete the source geometry for a nicer display of the geometry:
-    for l in lines:
-        FACTORY.remove([(1, l)])
+    # # Delete the source geometry for a nicer display of the geometry:
+    # for l in lines:
+    #     FACTORY.remove([(1, l)])
     return hole, rad_lines

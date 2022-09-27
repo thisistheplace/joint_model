@@ -5,24 +5,16 @@ from ..interfaces import DashVtkMesh
 
 
 def process_mesh(mesh: gmsh.model.mesh):
-    # Like elements, mesh edges and faces are described by (an ordered list of)
-    # their nodes. Let us retrieve the edges and the (triangular) faces of all the
-    # first order tetrahedra in the mesh:
-    elementType = mesh.getElementType("Triangle", 1)
-    # edgeNodes = mesh.getElementEdgeNodes(elementType)
-    faceNodes = mesh.getElementFaceNodes(elementType, 3)
+    elementType = mesh.getElementType("Quadrangle", 1)
+    faceNodes = mesh.getElementFaceNodes(elementType, 4)
 
-    # Edges and faces are returned for each element as a list of nodes corresponding
-    # to the canonical orientation of the edges and faces for a given element type.
-    # Edge and face tags can then be retrieved by providing their nodes:
-    # edgeTags, edgeOrientations = mesh.getEdges(edgeNodes)
-    faceTags, _ = mesh.getFaces(3, faceNodes)
+    faceTags, _ = mesh.getFaces(4, faceNodes)
     elementTags, _ = mesh.getElementsByType(elementType)
 
     faces2Elements = defaultdict(list)
 
-    for i in range(len(faceTags)):  # 4 faces per tetrahedron
-        faces2Elements[faceTags[i]].append(elementTags[i // 4])
+    for i in range(len(faceTags)):
+        faces2Elements[faceTags[i]].append(elementTags[i])
 
     return faces2Elements
 
@@ -39,9 +31,11 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
 
     for element in outerfaces:
         _, node_ids = mesh.getElement(element)
+        if len(node_ids) != 4:
+            raise TypeError()
         # if eltype != 2 or len(node_ids) != 3:
         #     continue
-        line = [len(node_ids)]
+        line = [len(node_ids) + 1]
         poly = [len(node_ids)]
         for nid in node_ids:
             if nid not in nid2pointidx:
@@ -50,6 +44,7 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
                 nid2pointidx[nid] = int(len(points) / 3 - 1)
             line.append(nid2pointidx[nid])
             poly.append(nid2pointidx[nid])
+        line.append(line[1])
 
         lines += line
         polys += poly

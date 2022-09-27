@@ -80,7 +80,7 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
     try:
         gmsh.initialize()
         # set messaging level to errors
-        gmsh.option.setNumber("General.Verbosity", 1)
+        # gmsh.option.setNumber("General.Verbosity", 1)
 
         meshed_tubes = mesh_joint(model.joint, specs)
 
@@ -103,7 +103,9 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
                 # raise Exception("SHOULD BE AN INTERSECTION")
 
         FACTORY.synchronize()
+        gmsh.option.setNumber("Mesh.RecombineAll", 1)
         gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
+        # gmsh.option.setNumber("Mesh.Smoothing", 100)
         gmsh.model.mesh.generate(2)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever
