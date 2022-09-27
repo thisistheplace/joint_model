@@ -38,7 +38,7 @@ def get_weld_intersect_points(
     flat_intersect = flat_tube_intersection(master, slave)
     flat_intersect[1] = radius_point[1]
 
-    def calc_angle(angle):
+    def pnt_intersect_at_angle(angle):
         # calculate new vector and point
         rotated_point = flat_intersect + rotate(perp, slave_vector, angle)
         pnt_intersect = plane_intersect(slave_vector, rotated_point, plane)
@@ -49,6 +49,6 @@ def get_weld_intersect_points(
         angle = degrees * math.pi / 180.
         if abs(degrees - 360) < 1e-8 or degrees > 360:
             continue
-        yield calc_angle(angle)
+        yield pnt_intersect_at_angle(angle)
 
-    return calc_angle(0.0)
+    return pnt_intersect_at_angle(0.0)

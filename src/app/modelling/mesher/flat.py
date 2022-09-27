@@ -89,10 +89,20 @@ def add_flat_tube(
     perimeter = FACTORY.addCurveLoop(lines)
 
     # get curves defining holes
-    holes = [hole_curve(master, slave) for slave in slaves]
+    holes = []
+    radial_curves = []
+    for slave in slaves:
+        hole, rad_curve = hole_curve(master, slave)
+        holes.append(hole)
+        radial_curves += rad_curve
+
+    # holes = [hole_curve(master, slave) for slave in slaves]
 
     surface = FACTORY.addPlaneSurface([perimeter] + holes)
     FACTORY.synchronize()
+
+    # Embed radial curves in surface so they become meshed
+    gmsh.model.mesh.embed(1, radial_curves, 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
@@ -102,6 +112,3 @@ def add_flat_tube(
     FACTORY.synchronize()
     # gmsh.option.setNumber("Geometry.NumSubEdges", 20)
     return [2, surface]
-
-
-# def punch_holes()
