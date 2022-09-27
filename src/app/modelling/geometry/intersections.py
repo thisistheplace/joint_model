@@ -75,6 +75,7 @@ def intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
 
     return intersect3D
 
+
 def circle_intersect(
     center: np.ndarray, diameter: float, point: np.ndarray, vector: np.ndarray
 ) -> np.ndarray:
@@ -143,23 +144,26 @@ def flat_tube_intersection(master: NpTubular, slave: NpTubular) -> np.ndarray:
     # Get intersections on master surface
     point = intersection(master, slave)
     master_circle = sympy.Circle(master.axis.point.array[:2], master.diameter / 2.0)
-    angle = arc_angle_signed(master_circle, point) * -1.0 # -1 since rotation is X to Y
+    angle = arc_angle_signed(master_circle, point) * -1.0  # -1 since rotation is X to Y
     if angle > math.pi:
         angle = 2 * math.pi - angle
     elif angle < -1 * math.pi:
         angle = -2 * math.pi - angle
-    circ_length = (master_circle.circumference / 2.) * angle / math.pi
+    circ_length = (master_circle.circumference / 2.0) * angle / math.pi
     point[0] = circ_length
+    # Y coordinate is at tube radius
+    point[1] = master.diameter / 2.0
     return point
+
 
 def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
     """Seam (0 rads) is aligned with Y axis
-    
+
     Positive rotation from X to Y axis (clockwise!)
 
     Circle is in 2D X/Y plane
     """
-    seam = sympy.Point2D(0., circle.radius)
+    seam = sympy.Point2D(0.0, circle.radius)
     seg_vector = np.empty((3,))
     seg_vector[:2] = point[:2] - np.array(seam.coordinates)
     seg_vector[2] = 0.0
@@ -167,7 +171,10 @@ def arc_angle_signed(circle: sympy.Circle, point: np.ndarray) -> float:
     sub_angle = math.acos(seg_length / 2.0 / circle.radius)
     return np.sign(circle.center[0] - point[0]) * (math.pi - 2 * sub_angle)
 
-def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> np.ndarray:
+
+def plane_intersect(
+    axis: np.ndarray, point: np.ndarray, plane: sympy.Plane
+) -> np.ndarray:
     """Calculate 3D point where slave intersects plane
 
     Plane is in X/Z plane.
@@ -185,11 +192,13 @@ def plane_intersect(axis: np.ndarray, point: np.ndarray, plane: sympy.Plane) -> 
     plane_point = np.array(plane.p1, dtype=float)
     plane_normal = np.array(plane.normal_vector, dtype=float)
     epsilon = 1e-6
-    
+
     try:
         ndotu = plane_normal.dot(axis)
         if abs(ndotu) < epsilon:
-            raise IntersectionError(f"Cannot compute intersect of vector {axis} which lies in plane {plane}")
+            raise IntersectionError(
+                f"Cannot compute intersect of vector {axis} which lies in plane {plane}"
+            )
         w = point - plane_point
         si = -plane_normal.dot(w) / ndotu
         return w + si * axis + plane_point

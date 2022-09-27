@@ -69,7 +69,8 @@ class Manager(SingletonThread):
         self.worker.stop()
         del self._worker
         import gc
-        gc.collect() 
+
+        gc.collect()
         self._stop_event.set()
 
     def submit_job(self, model: Model) -> MeshJob:

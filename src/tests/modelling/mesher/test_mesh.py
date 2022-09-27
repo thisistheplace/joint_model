@@ -11,13 +11,13 @@ from app.interfaces.mesh import MeshSpecs
 
 
 @pytest.fixture
-def joint():
-    return EXAMPLE_MODELS["TJoint"].joint
+def model():
+    return EXAMPLE_MODELS["KJoint"]
 
 
 @pytest.fixture
-def model():
-    return EXAMPLE_MODELS["TJoint"]
+def joint(model):
+    return model.joint
 
 
 @pytest.fixture

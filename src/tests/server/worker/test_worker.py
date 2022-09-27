@@ -20,6 +20,7 @@ class TestWorkerStartStop:
     def test_worker_start_stop(self, worker):
         assert worker.is_alive()
 
+
 class TestWorkerRunsJob:
     def test_worker_runs_job(self, worker):
         jobin = Job(EXAMPLE_MODELS["TJoint"])

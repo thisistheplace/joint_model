@@ -68,7 +68,7 @@ def add_flat_tube(
     line_of_points = list(
         line_points(key_points, interval=specs.interval, size=specs.size)
     )
-    
+
     # weld_pnts = []
     # for pnts in [list(get_weld_intersect_points(map_to_np(master), map_to_np(slave))) for slave in slaves]:
     #     weld_pnts += pnts
