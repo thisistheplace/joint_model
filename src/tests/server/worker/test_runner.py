@@ -4,7 +4,7 @@ import sys
 sys.path.append("src")
 
 from app.interfaces.examples.joints import EXAMPLE_MODELS
-from app.server.worker.jobs.job import Job
+from app.server.worker.jobs.job import Job, JobStatus
 from app.server.worker.manager import Manager
 from app.server.worker.runner import RunJob
 
@@ -19,7 +19,7 @@ def manager() -> Manager:
 
 @pytest.fixture
 def job() -> Job:
-    return Job(EXAMPLE_MODELS["TJoint"])
+    return Job(EXAMPLE_MODELS["KJoint"])
 
 
 @pytest.fixture
@@ -36,3 +36,5 @@ class TestRunJob:
         runner.wait()
         runner.stop()
         assert not runner.is_alive()
+        assert runner.job.status == JobStatus.COMPLETE
+        assert runner.job.mesh is not None

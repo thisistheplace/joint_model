@@ -20,7 +20,6 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
     for idx, pnt in enumerate(
         get_weld_intersect_points(npmaster, npslave, angle_inc=angle)
     ):
-        print(pnt)
         hole_pnt_tags.append(FACTORY.addPoint(*pnt.tolist()))
         pnts[idx, :] = pnt
 
@@ -32,15 +31,18 @@ def hole_curve(master: Tubular, slave: Tubular) -> dict[str, np.ndarray]:
 
     # create points at radial distances away from hole points
     distances = [0.1, 0.2, 0.3, 0.4]
+    # distances = [0.2]
     rad_lines = []
     for distance in distances:
         radial = flat_intersect + unit_vectors * distance
-        rad_pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in radial]
-        rad_pnt_tags[-1] = rad_pnt_tags[0]
-        rad_lines += [
-            FACTORY.addLine(pnt, rad_pnt_tags[idx + 1])
-            for idx, pnt in enumerate(rad_pnt_tags[:-1])
-        ]
+        # rad_pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in radial]
+        # rad_pnt_tags[-1] = rad_pnt_tags[0]
+        # rad_line = [
+        #     FACTORY.addLine(pnt, rad_pnt_tags[idx + 1])
+        #     for idx, pnt in enumerate(rad_pnt_tags[:-1])
+        # ]
+        # rad_lines.append(FACTORY.addCurveLoop(rad_line))
+        rad_lines.append(radial)
 
     # make sure last point is the same as the first point
     hole_pnt_tags[-1] = hole_pnt_tags[0]
