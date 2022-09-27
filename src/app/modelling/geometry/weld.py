@@ -4,12 +4,18 @@ import sympy
 from typing import Generator
 
 from .vectors import rotate, unit_vector
-from .intersections import flat_tube_intersection, plane_intersect, intersection, arc_angle_signed
+from .intersections import (
+    flat_tube_intersection,
+    plane_intersect,
+    intersection,
+    arc_angle_signed,
+)
 from ...interfaces import *
 
 # TODO: look into https://mathcurve.com/courbes2d.gb/alain/alain.shtml
 # TODO:https://math.stackexchange.com/questions/141593/formula-for-cylinder?newreg=52c6b3d9cb1d47c1aaa3ff0706aa2298
 # Plane is XZ so X = Z, Y = offset
+
 
 def get_weld_intersect_points(
     master: NpTubular, slave: NpTubular, angle_inc: int = 10
@@ -17,7 +23,7 @@ def get_weld_intersect_points(
     """X/Z plane"""
     intersect = intersection(master, slave)
     # Radius point is on Y axis at radius
-    radius_point = np.array([0., master.diameter / 2., intersect[2]])
+    radius_point = np.array([0.0, master.diameter / 2.0, intersect[2]])
     # Create X/Z plane at radius point
     p2 = deepcopy(radius_point)
     p2[0] += 1.0
@@ -31,14 +37,21 @@ def get_weld_intersect_points(
     radius_arc_angle = arc_angle_signed(circle, radius_point)
     intersect_arc_angle = arc_angle_signed(circle, intersect)
     arc_angle = radius_arc_angle + intersect_arc_angle
-    slave_vector = rotate(unit_vector(slave.axis.vector.array), np.array([0.0, 0.0, 1.0]), arc_angle * -1.)
-    perp = unit_vector(np.cross(master.axis.vector.array, slave_vector)) * slave.diameter / 2.
+    slave_vector = rotate(
+        unit_vector(slave.axis.vector.array),
+        np.array([0.0, 0.0, 1.0]),
+        arc_angle * -1.0,
+    )
+    perp = (
+        unit_vector(np.cross(master.axis.vector.array, slave_vector))
+        * slave.diameter
+        / 2.0
+    )
 
     # Get intersect on flattened tube plane
     flat_intersect = flat_tube_intersection(master, slave)
-    flat_intersect[1] = radius_point[1]
 
-    def calc_angle(angle):
+    def pnt_intersect_at_angle(angle):
         # calculate new vector and point
         rotated_point = flat_intersect + rotate(perp, slave_vector, angle)
         pnt_intersect = plane_intersect(slave_vector, rotated_point, plane)
@@ -46,9 +59,9 @@ def get_weld_intersect_points(
         return pnt_intersect
 
     for degrees in range(0, 361, angle_inc):
-        angle = degrees * math.pi / 180.
+        angle = degrees * math.pi / 180.0
         if abs(degrees - 360) < 1e-8 or degrees > 360:
             continue
-        yield calc_angle(angle)
+        yield pnt_intersect_at_angle(angle)
 
-    return calc_angle(0.0)
+    return pnt_intersect_at_angle(0.0)

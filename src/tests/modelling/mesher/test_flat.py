@@ -12,7 +12,7 @@ from app.interfaces import *
 
 @pytest.fixture
 def tube():
-    return EXAMPLE_MODELS["TJoint"]
+    return EXAMPLE_MODELS["KJoint"]
 
 
 @pytest.fixture

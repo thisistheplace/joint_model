@@ -20,9 +20,10 @@ class TestWorkerStartStop:
     def test_worker_start_stop(self, worker):
         assert worker.is_alive()
 
+
 class TestWorkerRunsJob:
-    def test_worker_runs_job(self, worker):
-        jobin = Job(EXAMPLE_MODELS["TJoint"])
+    def test_worker_submits_job(self, worker):
+        jobin = Job(EXAMPLE_MODELS["KJoint"])
         worker.submit(jobin)
         jobout = worker.outqueue.get(timeout=5)
         assert jobin.id == jobout.id

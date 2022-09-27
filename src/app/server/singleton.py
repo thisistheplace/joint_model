@@ -1,5 +1,6 @@
 from threading import Thread
 
+
 class Singleton:
     def __new__(cls, *args, **kwds):
         it = cls.__dict__.get("__it__")

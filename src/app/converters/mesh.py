@@ -1,34 +1,35 @@
 from collections import defaultdict
+from enum import Enum
 import gmsh
 
 from ..interfaces import DashVtkMesh
 
+class ElementType(str, Enum):
+    TRIANGLE = "Triangle"
+    QUADRANGLE = "Quadrangle"
 
-def process_mesh(mesh: gmsh.model.mesh):
-    # Like elements, mesh edges and faces are described by (an ordered list of)
-    # their nodes. Let us retrieve the edges and the (triangular) faces of all the
-    # first order tetrahedra in the mesh:
-    elementType = mesh.getElementType("Triangle", 1)
-    # edgeNodes = mesh.getElementEdgeNodes(elementType)
-    faceNodes = mesh.getElementFaceNodes(elementType, 3)
+NUM_NODES = {
+    ElementType.TRIANGLE: 3,
+    ElementType.QUADRANGLE: 4
+}
 
-    # Edges and faces are returned for each element as a list of nodes corresponding
-    # to the canonical orientation of the edges and faces for a given element type.
-    # Edge and face tags can then be retrieved by providing their nodes:
-    # edgeTags, edgeOrientations = mesh.getEdges(edgeNodes)
-    faceTags, _ = mesh.getFaces(3, faceNodes)
+def process_mesh(mesh: gmsh.model.mesh, eltype: ElementType):
+    elementType = mesh.getElementType(eltype.value, 1)
+    faceNodes = mesh.getElementFaceNodes(elementType, NUM_NODES[eltype])
+
+    faceTags, _ = mesh.getFaces(NUM_NODES[eltype], faceNodes)
     elementTags, _ = mesh.getElementsByType(elementType)
 
     faces2Elements = defaultdict(list)
 
-    for i in range(len(faceTags)):  # 4 faces per tetrahedron
-        faces2Elements[faceTags[i]].append(elementTags[i // 4])
+    for i in range(len(faceTags)):
+        faces2Elements[faceTags[i]].append(elementTags[i])
 
     return faces2Elements
 
 
-def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
-    face2el = process_mesh(mesh)
+def mesh_to_dash_vtk(mesh: gmsh.model.mesh, eltype: ElementType) -> DashVtkMesh:
+    face2el = process_mesh(mesh, eltype)
 
     outerfaces = [k for k in face2el.keys()]
 
@@ -41,7 +42,7 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
         _, node_ids = mesh.getElement(element)
         # if eltype != 2 or len(node_ids) != 3:
         #     continue
-        line = [len(node_ids)]
+        line = [len(node_ids) + 1]
         poly = [len(node_ids)]
         for nid in node_ids:
             if nid not in nid2pointidx:
@@ -50,6 +51,7 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
                 nid2pointidx[nid] = int(len(points) / 3 - 1)
             line.append(nid2pointidx[nid])
             poly.append(nid2pointidx[nid])
+        line.append(line[1])
 
         lines += line
         polys += poly
