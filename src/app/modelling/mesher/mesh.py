@@ -28,6 +28,7 @@ OR
 1. Find intersection at vectors offset from tube centreline
     
 """
+from asyncio import constants
 from contextlib import contextmanager
 import gmsh
 from itertools import combinations
@@ -63,8 +64,9 @@ def mesh_slaves(tube: Tubular, specs: MeshSpecs) -> tuple[int, int]:
 
 def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     joint_mesh = {}
+    master_surface = mesh_master(joint.master, joint.slaves, specs)
     joint_mesh.update(
-        {joint.master.name: mesh_master(joint.master, joint.slaves, specs)}
+        {joint.master.name: master_surface}
     )
     # joint_mesh.update({tube.name: mesh_slaves(tube, specs) for tube in joint.slaves})
     # TODO: move map to decorator?
@@ -72,7 +74,7 @@ def mesh_joint(joint: Joint, specs: MeshSpecs) -> dict[str, tuple[int, int]]:
     for k, (dim, mesh) in joint_mesh.items():
         gid = gmsh.model.addPhysicalGroup(dim, [mesh])
         gmsh.model.setPhysicalName(dim, gid, k)
-        return joint_mesh
+    return joint_mesh
 
 
 @contextmanager
@@ -86,9 +88,12 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
 
         FACTORY.synchronize()
         
-        # gmsh.option.setNumber("Mesh.RecombineAll", 1)
+        gmsh.option.setNumber("Mesh.RecombineAll", 1)
+        gmsh.option.setNumber("Mesh.RecombinationAlgorithm", 3)
+
         gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
         # gmsh.option.setNumber("Mesh.Smoothing", 100)
+        # gmsh.option.setNumber("Mesh.Algorithm", 8)
         gmsh.model.mesh.generate(2)
 
         # Gmsh can also identify unique edges and faces (a single edge or face whatever

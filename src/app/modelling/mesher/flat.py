@@ -80,9 +80,11 @@ def add_flat_tube(
     # TODO: check that slave names are unique!
     holes = []
     radial_lines = {}
+    hole_points = []
     for slave in slaves:
-        hole, rad_lines = hole_curve(master, slave)
+        hole, hole_pnts, rad_lines = hole_curve(master, slave)
         holes.append(hole)
+        hole_points += hole_pnts
         radial_lines[slave.name] = rad_lines
 
     # TODO: this bit!
@@ -143,7 +145,7 @@ def add_flat_tube(
     #     for radial in radials:
     #         for pnt in radial:
     #             weld_pnts.append(pnt)
-    # points = line_of_points + weld_pnts
+    # points = line_of_points + weld_pnts + hole_points
     # x = [pnt[0] for pnt in points]
     # y = [pnt[1] for pnt in points]
     # z = [pnt[2] for pnt in points]
@@ -174,7 +176,6 @@ def add_flat_tube(
 
     # Embed radial curves in surface so they become meshed
     gmsh.model.mesh.embed(1, mesh_constraints + holes, 2, surface)
-    gmsh.model.mesh.embed(0, all_points, 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:

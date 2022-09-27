@@ -19,7 +19,7 @@ class TestMeshToDashVtk:
     def test_mesh_to_dash_vtk_success(self, mesh_specs):
         model = EXAMPLE_MODELS["TJoint"]
         with mesh_model(model, mesh_specs) as mesh:
-            dash_data = mesh_to_dash_vtk(mesh, ElementType.TRIANGLE)
+            dash_data = mesh_to_dash_vtk(mesh, ElementType.QUADRANGLE)
 
         assert isinstance(dash_data, DashVtkMesh)
         assert dash_data == DashVtkMesh.parse_obj(dash_data.dict())
