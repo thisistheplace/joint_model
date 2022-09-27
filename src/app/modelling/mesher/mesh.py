@@ -85,25 +85,8 @@ def mesh_model(model: Model, specs: MeshSpecs) -> gmsh.model.mesh:
         meshed_tubes = mesh_joint(model.joint, specs)
 
         FACTORY.synchronize()
-
-        # attempt all intersections
-        for comb in combinations(meshed_tubes.values(), 2):
-            intersect = FACTORY.intersect(
-                [comb[0]], [comb[1]], removeObject=False, removeTool=False
-            )
-            FACTORY.synchronize()
-            if len(intersect[0]) > 0:
-                # if there is an intersection, do what you want to do.
-                FACTORY.remove(
-                    intersect[0], True
-                )  # remove created intersection objects
-                FACTORY.synchronize()
-            else:
-                pass
-                # raise Exception("SHOULD BE AN INTERSECTION")
-
-        FACTORY.synchronize()
-        gmsh.option.setNumber("Mesh.RecombineAll", 1)
+        
+        # gmsh.option.setNumber("Mesh.RecombineAll", 1)
         gmsh.option.setNumber("Mesh.MeshSizeMax", 0.1)
         # gmsh.option.setNumber("Mesh.Smoothing", 100)
         gmsh.model.mesh.generate(2)

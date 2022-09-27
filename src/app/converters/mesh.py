@@ -1,14 +1,23 @@
 from collections import defaultdict
+from enum import Enum
 import gmsh
 
 from ..interfaces import DashVtkMesh
 
+class ElementType(str, Enum):
+    TRIANGLE = "Triangle"
+    QUADRANGLE = "Quadrangle"
 
-def process_mesh(mesh: gmsh.model.mesh):
-    elementType = mesh.getElementType("Quadrangle", 1)
-    faceNodes = mesh.getElementFaceNodes(elementType, 4)
+NUM_NODES = {
+    ElementType.TRIANGLE: 3,
+    ElementType.QUADRANGLE: 4
+}
 
-    faceTags, _ = mesh.getFaces(4, faceNodes)
+def process_mesh(mesh: gmsh.model.mesh, eltype: ElementType):
+    elementType = mesh.getElementType(eltype.value, 1)
+    faceNodes = mesh.getElementFaceNodes(elementType, NUM_NODES[eltype])
+
+    faceTags, _ = mesh.getFaces(NUM_NODES[eltype], faceNodes)
     elementTags, _ = mesh.getElementsByType(elementType)
 
     faces2Elements = defaultdict(list)
@@ -19,8 +28,8 @@ def process_mesh(mesh: gmsh.model.mesh):
     return faces2Elements
 
 
-def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
-    face2el = process_mesh(mesh)
+def mesh_to_dash_vtk(mesh: gmsh.model.mesh, eltype: ElementType) -> DashVtkMesh:
+    face2el = process_mesh(mesh, eltype)
 
     outerfaces = [k for k in face2el.keys()]
 
@@ -31,8 +40,6 @@ def mesh_to_dash_vtk(mesh: gmsh.model.mesh) -> DashVtkMesh:
 
     for element in outerfaces:
         _, node_ids = mesh.getElement(element)
-        if len(node_ids) != 4:
-            raise TypeError()
         # if eltype != 2 or len(node_ids) != 3:
         #     continue
         line = [len(node_ids) + 1]

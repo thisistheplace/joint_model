@@ -155,10 +155,12 @@ def add_flat_tube(
 
     # Create curves to apply mesh contraints at radial positions around holes
     mesh_constraints = []
+    all_points = []
     for radials in radial_lines.values():
         for radial in radials:
             rad_pnt_tags = [FACTORY.addPoint(*pnt.tolist()) for pnt in radial]
             rad_pnt_tags.append(rad_pnt_tags[0])
+            all_points += rad_pnt_tags
             rad_line = [
                 FACTORY.addLine(pnt, rad_pnt_tags[idx + 1])
                 for idx, pnt in enumerate(rad_pnt_tags[:-1])
@@ -170,9 +172,9 @@ def add_flat_tube(
     surface = FACTORY.addPlaneSurface([perimeter] + holes)
     FACTORY.synchronize()
 
-
     # Embed radial curves in surface so they become meshed
     gmsh.model.mesh.embed(1, mesh_constraints + holes, 2, surface)
+    gmsh.model.mesh.embed(0, all_points, 2, surface)
 
     # We delete the source geometry, and increase the number of sub-edges for a
     # nicer display of the geometry:
